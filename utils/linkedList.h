@@ -6,14 +6,38 @@
 namespace utils {
 
     template <typename type>
-    struct LinkedList {
+    struct LinkedListData {
 
         type* object;
-        LinkedList <type>* next;
+        LinkedListData <type>* previous, *next;
+
+        ~LinkedListData();
+
+        LinkedListData(type*);
+
+    };
+
+    template <typename type>
+    struct LinkedList {
+
+        LinkedListData <type>* frst, *last;
+        int count;
 
         ~LinkedList();
 
         LinkedList();
+
+        void add(type*);
+
+        void addFrst(type*);
+
+        void remove(LinkedListData <type>*);
+
+        type* removeFrst();
+
+        void clean();
+
+        type* operator[](int);
 
     };
     

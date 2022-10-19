@@ -18,7 +18,13 @@ namespace byteCode {
 
         void execute(unsigned char, vm::Method*);
 
-        void LOAD_STACK(unsigned char, vm::Method*);
+        void STACK_LOAD(unsigned char, vm::Method*);
+
+        void STACK_NAME(unsigned char, vm::Method*);
+
+        void LOAD_NAME(unsigned char, vm::Method*);
+
+        void ADD(unsigned char, vm::Method*);
 
         void PRINT(vm::Method*);
 

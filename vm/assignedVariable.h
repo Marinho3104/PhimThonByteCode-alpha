@@ -17,16 +17,18 @@ namespace vm {
 
         VariableName(unsigned char*, int);
 
+        VariableName(char*, int);
+
     };
 
     struct AssignedVariable {
 
-        VariableName* name;
+        unsigned char name;
         objects::PhimObject* value;
 
         ~AssignedVariable();
 
-        AssignedVariable(VariableName*, objects::PhimObject*);
+        AssignedVariable(unsigned char, objects::PhimObject*);
         
     };
 

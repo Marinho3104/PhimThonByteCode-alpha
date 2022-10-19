@@ -8,7 +8,13 @@ namespace objects {
 
     struct PhimObject {
 
-        virtual int getType() = 0;
+        virtual ~PhimObject();
+
+        virtual void* getData() = 0;
+
+        virtual PhimObject* add(PhimObject*) = 0;
+
+        virtual PhimObject* getCopy() = 0;
 
         virtual void print() = 0;
 

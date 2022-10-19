@@ -1,7 +1,9 @@
 #include "./byteCode.h"
 
 #include "./byteCodeIdentification.h"
+#include "./../vm/assignedVariable.h"
 #include "./../objects/PhimObject.h"
+#include "./../utils/linkedList.h"
 #include "./../vm/method.h"
 #include "./../vm/stack.h"
 
@@ -19,7 +21,25 @@ void byteCode::ByteCode::execute(unsigned char _arg, vm::Method* _method) {
 
         case BYTECODE_STACK_LOAD:
 
-            LOAD_STACK(_arg, _method);
+            STACK_LOAD(_arg, _method);
+
+            break;
+
+        case BYTECODE_STACK_NAME:
+
+            STACK_NAME(_arg, _method);
+
+            break;
+
+        case BYTECODE_LOAD_NAME:
+
+            LOAD_NAME(_arg, _method);
+
+            break;
+
+        case BYTECODE_ADD:
+
+            ADD(_arg, _method);
 
             break;
 
@@ -38,11 +58,66 @@ void byteCode::ByteCode::execute(unsigned char _arg, vm::Method* _method) {
 
 }
 
-void byteCode::ByteCode::LOAD_STACK(unsigned char _arg, vm::Method* _method) {
+void byteCode::ByteCode::STACK_LOAD(unsigned char _arg, vm::Method* _method) {
 
     _method->stack->add(
-        _method->constants + _arg
+        (*_method->constants)[_arg]
     );
+
+}
+
+void byteCode::ByteCode::STACK_NAME(unsigned char _arg, vm::Method* _method) {
+
+    objects::PhimObject* _stackTopValue = _method->stack->pop();
+    vm::VariableName* _variableName = (*_method->names)[_arg];
+    
+    vm::AssignedVariable* _assignedVariable = (vm::AssignedVariable*) malloc(sizeof(vm::AssignedVariable));
+    new(_assignedVariable) vm::AssignedVariable(
+        _arg, _stackTopValue
+    );
+
+    _method->assignedVariables->add(_assignedVariable);
+
+}
+
+void byteCode::ByteCode::LOAD_NAME(unsigned char _arg, vm::Method* _method) {
+
+    utils::LinkedListData <vm::AssignedVariable>* _assignedVariable = _method->assignedVariables->frst;
+
+    while(_assignedVariable != NULL) {
+
+        if (
+            _assignedVariable->object->name == _arg
+        ) break;
+
+        _assignedVariable = _assignedVariable->next;
+
+    }
+
+    if (_assignedVariable == NULL) return;
+
+    _method->stack->add(
+        _assignedVariable->object->value->getCopy()
+    );
+
+}
+
+void byteCode::ByteCode::ADD(unsigned char _arg, vm::Method* _method) {
+
+    objects::PhimObject* _frst = _method->stack->pop();
+    objects::PhimObject* _scnd = _method->stack->pop();
+
+    _method->stack->add(
+        _frst->add(_scnd)
+    );
+
+    _frst->~PhimObject();
+    _scnd->~PhimObject();
+
+    free(_frst);
+    free(_scnd);
+
+    
 
 }
 
@@ -51,5 +126,8 @@ void byteCode::ByteCode::PRINT(vm::Method* _method) {
     objects::PhimObject* _stackTopValue = _method->stack->pop();
 
     _stackTopValue->print();
+
+    _stackTopValue->~PhimObject();
+    free(_stackTopValue);
 
 }

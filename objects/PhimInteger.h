@@ -9,19 +9,24 @@ namespace objects {
 
     struct PhimInteger : public PhimObject {
 
-        int data;
+        int* data_crrnt;
 
         ~PhimInteger();
 
-        PhimInteger(int);
+        PhimInteger(void*);
 
-        int getType();
+        void* destructor();
+
+        void* getData();
+
+        PhimObject* add(PhimObject*);
+
+        PhimObject* getCopy();
 
         void print();
 
     };
-    
-}
 
+}
 
 #endif

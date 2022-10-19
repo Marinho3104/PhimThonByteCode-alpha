@@ -17,9 +17,9 @@ namespace vm {
     struct Method {
 
         objects::PhimObject* classFather;
-        Instruction* instructions;
+        utils::LinkedList<Instruction>* instructions;
         int instructionsLenght;
-        objects::PhimObject* constants;
+        utils::LinkedList<objects::PhimObject>* constants;
         utils::LinkedList<AssignedVariable>* assignedVariables;
         utils::LinkedList<VariableName>* names;
         objects::PhimObject* returnValue;
@@ -30,9 +30,9 @@ namespace vm {
 
         Method(
             objects::PhimObject*,
-            Instruction*,
+           utils::LinkedList<Instruction>*,
             int,
-            objects::PhimObject*,
+            utils::LinkedList<objects::PhimObject>*,
             utils::LinkedList<AssignedVariable>*,
             utils::LinkedList<VariableName>*
         );

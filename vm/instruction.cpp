@@ -7,6 +7,9 @@
 
 vm::Instruction::~Instruction() {
 
+    if (byteCode != NULL) byteCode->~ByteCode();
+    free(byteCode);
+
 }
 
 vm::Instruction::Instruction(unsigned char _byteCodeValue, unsigned char _arg) :

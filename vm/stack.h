@@ -11,7 +11,7 @@ namespace vm {
 
     struct Stack {
 
-        utils::LinkedList<objects::PhimObject>* stackData; // Inverted ( first in first out)
+        utils::LinkedList<objects::PhimObject>* stack; // Inverted ( first in first out)
 
         ~Stack();
 

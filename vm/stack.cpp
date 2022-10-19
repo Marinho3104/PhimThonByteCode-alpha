@@ -5,40 +5,28 @@
 
 #include <iostream>
 
-vm::Stack::~Stack() {}
+vm::Stack::~Stack() {
 
-vm::Stack::Stack() : stackData(NULL) {}
+    free(stack);
+
+}
+
+vm::Stack::Stack() {
+
+    stack = (utils::LinkedList <objects::PhimObject>*) malloc(sizeof(utils::LinkedList <objects::PhimObject>));
+    new(stack) utils::LinkedList <objects::PhimObject>();
+
+}
 
 void vm::Stack::add(objects::PhimObject* _toAdd) {
-
-    std::cout << "Added new value to stack" << std::endl;
     
-    utils::LinkedList<objects::PhimObject>* _stackData = (utils::LinkedList<objects::PhimObject>*) malloc(sizeof(utils::LinkedList<objects::PhimObject>));
-    new (_stackData) utils::LinkedList<objects::PhimObject>();
-
-    if (stackData == NULL) {
-
-        stackData = _stackData;
-
-        stackData->object = _toAdd;
-
-    }
-
-    else {
-
-        _stackData->next = stackData;
-
-        stackData = _stackData;
-
-    }
+    stack->addFrst(_toAdd);
 
 }
 
 objects::PhimObject* vm::Stack::pop(int _n) {
 
-    objects::PhimObject* _rtr = stackData->object;
-
-    stackData = stackData->next;
+    objects::PhimObject* _rtr = stack->removeFrst();
 
     return _rtr;
 
