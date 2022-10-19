@@ -1,0 +1,3 @@
+
+#define BYTECODE_STACK_LOAD 0
+#define BYTECODE_PRINT 1
