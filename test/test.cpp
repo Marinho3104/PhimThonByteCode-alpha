@@ -2,6 +2,7 @@
 #include "./../byteCode/byteCodeIdentification.h"
 #include "./../vm/assignedVariable.h"
 #include "./../objects/PhimInteger.h"
+#include "./../objects/PhimBitsArray.h"
 #include "./../objects/PhimObject.h"
 #include "./../utils/linkedList.h"
 #include "./../vm/instruction.h"
@@ -14,8 +15,8 @@ utils::LinkedList<objects::PhimObject>* getConsts() {
     utils::LinkedList<objects::PhimObject>* _constants = (utils::LinkedList<objects::PhimObject>*) malloc(sizeof(utils::LinkedList<objects::PhimObject>));
     new(_constants) utils::LinkedList<objects::PhimObject>();
 
-    int* _int1Value = (int*) malloc(sizeof(int)); *_int1Value = 123456; 
-    int* _int2Value = (int*) malloc(sizeof(int)); *_int2Value = 654321; 
+    int* _int1Value = (int*) malloc(sizeof(int)); *_int1Value = 100;
+    int* _int2Value = (int*) malloc(sizeof(int)); *_int2Value = 10; 
 
     objects::PhimInteger* _int1 = (objects::PhimInteger*) malloc(sizeof(objects::PhimInteger));
     new(_int1) objects::PhimInteger(_int1Value);
@@ -66,13 +67,18 @@ utils::LinkedList<vm::Instruction>* getInstructions() {
 
     vm::Instruction* _instruction6 = (vm::Instruction*) malloc(sizeof(vm::Instruction));
     new(_instruction6) vm::Instruction(
-        BYTECODE_ADD, 0
+        BYTECODE_BITWISE_NOT, 0
     );
 
     vm::Instruction* _instruction7 = (vm::Instruction*) malloc(sizeof(vm::Instruction));
     new(_instruction7) vm::Instruction(
         BYTECODE_PRINT, 0
     );
+
+    // vm::Instruction* _instruction8 = (vm::Instruction*) malloc(sizeof(vm::Instruction));
+    // new(_instruction8) vm::Instruction(
+    //     BYTECODE_GO_TO, 0
+    // );
 
     _instructions->add(_instruction);
     _instructions->add(_instruction1);
@@ -82,6 +88,7 @@ utils::LinkedList<vm::Instruction>* getInstructions() {
     _instructions->add(_instruction5);
     _instructions->add(_instruction6);
     _instructions->add(_instruction7);
+    //_instructions->add(_instruction8);
 
 }
 
@@ -119,19 +126,87 @@ utils::LinkedList<vm::AssignedVariable>* getAssignedVariables() {
 
 int main() {
 
-    vm::Method* method = (vm::Method*) malloc(sizeof(vm::Method));
-    new (method) vm::Method(
-        NULL,
-        getInstructions(),
-        8,
-        getConsts(),
-        getAssignedVariables(),
-        getVariablesNames()
-    );
+    objects::PhimBitsArray* _bytes = (objects::PhimBitsArray*) malloc(sizeof(objects::PhimBitsArray));
+    new (_bytes) objects::PhimBitsArray();
 
-    method->runMethod();
+    _bytes->addNewByte(54);
+    _bytes->addNewByte(123);
+    _bytes->addNewByte(50);
+    _bytes->addNewByte(255);
 
-    method->~Method();
-    free(method);
+    // std::cout << (int) (*_bytes)[3] << std::endl;
+
+    // return 0;
+
+    objects::PhimBitsArray* _bytes1 = (objects::PhimBitsArray*) malloc(sizeof(objects::PhimBitsArray));
+    new (_bytes1) objects::PhimBitsArray();
+
+    _bytes1->addNewByte(72);
+    _bytes1->addNewByte(12);
+
+    std::cout << _bytes->getFullSize() << std::endl;
+    std::cout << _bytes1->getFullSize() << std::endl;
+
+    // std::cout << _bytes->getBytesRepresentation() << std::endl;
+    // std::cout << _bytes1->getBytesRepresentation() << std::endl;
+
+    // *_bytes /= *_bytes1;
+
+    // // std::cout << _bytes->getBytesRepresentation() << std::endl;
+
+    // _bytes->~PhimBitsArray();
+    // free(_bytes);
+
+    // _bytes1->~PhimBitsArray();
+    // free(_bytes1);
+
+    // // _bytes1->addNewByte(50);
+    // // _bytes1->addNewByte(111);
+
+    // std::cout << _bytes1->getBytesRepresentation() << std::endl;
+    // std::cout << _bytes->getBytesRepresentation() << std::endl;
+    // std::cout << (*_bytes + *_bytes1).getBytesRepresentation() << std::endl;
+    // *_bytes += *_bytes1;
+
+    // std::cout << _bytes->getBytesRepresentation() << std::endl;
+
+    // _bytes->~PhimBitsArray(); free(_bytes);
+    // _bytes1->~PhimBitsArray(); free(_bytes1);
+
+    // std::cout << _bytes->getBytesRepresentation() << std::endl;
+    // std::cout << _bytes1->getBytesRepresentation() << std::endl;
+    // std::cout << ()->getBytesRepresentation() << std::endl;
+
+    // _bytes->setBit(0, 1);
+    // _bytes->setBit(1, 1);
+
+    // std::cout << _bytes->getBytesRepresentation() << std::endl;
+
+    // for (int _ = 31; _ >= 0; _--) std::cout << (*_bytes)[_];
+
+    // std::cout << std::endl;
+
+    // _byte->setBit(2, 0);
+
+    // _byte->~ByteData();
+    // free(_byte);
+
+
+    // for (int _ = 0; _ < 8; _++)
+    //     std::cout << (*_byte)[_] << std::endl;
+
+    // vm::Method* method = (vm::Method*) malloc(sizeof(vm::Method));
+    // new (method) vm::Method(
+    //     NULL,
+    //     getInstructions(),
+    //     getConsts(),
+    //     getAssignedVariables(),
+    //     getVariablesNames()
+    // );
+
+    // method->runMethod();
+
+    // method->~Method();
+    // free(method);
 
 }

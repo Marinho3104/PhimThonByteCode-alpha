@@ -28,10 +28,10 @@ vm::Method::~Method() {
 
 }
 
-vm::Method::Method(objects::PhimObject* _classFather, utils::LinkedList<Instruction>* _instructions, int _instructionsLenght, utils::LinkedList<objects::PhimObject>* _constants,
+vm::Method::Method(objects::PhimObject* _classFather, utils::LinkedList<Instruction>* _instructions, utils::LinkedList<objects::PhimObject>* _constants,
         utils::LinkedList<AssignedVariable>* _assignedVariables, utils::LinkedList<VariableName>* _names) : 
-            classFather(_classFather), instructions(_instructions), instructionsLenght(_instructionsLenght), constants(_constants), 
-                assignedVariables(_assignedVariables), names(_names), returnValue(NULL) {
+            classFather(_classFather), instructions(_instructions), constants(_constants), 
+                assignedVariables(_assignedVariables), names(_names), returnValue(NULL), currentInstruction(0) {
 
                     stack = (vm::Stack*) malloc(sizeof(vm::Stack));
                     new(stack) vm::Stack();
@@ -40,13 +40,11 @@ vm::Method::Method(objects::PhimObject* _classFather, utils::LinkedList<Instruct
 
 void vm::Method::runMethod() {
 
-    int _index = 0;
+    while(currentInstruction != instructions->count) {
 
-    while(_index != instructionsLenght) {
+        (*instructions)[currentInstruction]->execute(this);
 
-        (*instructions)[_index]->execute(this);
-
-        ++_index;
+        ++currentInstruction;
 
     }
 

@@ -18,11 +18,11 @@ namespace vm {
 
         objects::PhimObject* classFather;
         utils::LinkedList<Instruction>* instructions;
-        int instructionsLenght;
         utils::LinkedList<objects::PhimObject>* constants;
         utils::LinkedList<AssignedVariable>* assignedVariables;
         utils::LinkedList<VariableName>* names;
         objects::PhimObject* returnValue;
+        int currentInstruction;
 
         Stack* stack;
 
@@ -30,8 +30,7 @@ namespace vm {
 
         Method(
             objects::PhimObject*,
-           utils::LinkedList<Instruction>*,
-            int,
+            utils::LinkedList<Instruction>*,
             utils::LinkedList<objects::PhimObject>*,
             utils::LinkedList<AssignedVariable>*,
             utils::LinkedList<VariableName>*

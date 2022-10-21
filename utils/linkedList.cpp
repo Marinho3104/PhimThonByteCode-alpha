@@ -39,7 +39,7 @@ utils::LinkedList<type>::~LinkedList() {
 }
 
 template <typename type>
-utils::LinkedList<type>::LinkedList() : frst(NULL), last(NULL) {}
+utils::LinkedList<type>::LinkedList() : frst(NULL), last(NULL), count(0) {}
 
 template <typename type>
 void utils::LinkedList<type>::add(type* _newValue) {
@@ -50,6 +50,8 @@ void utils::LinkedList<type>::add(type* _newValue) {
     if (frst == NULL) { frst = _linkedListData; last = _linkedListData; }
 
     else { last->next = _linkedListData; last = _linkedListData; }
+
+    ++count;
 
 }
 
@@ -62,6 +64,8 @@ void utils::LinkedList<type>::addFrst(type* _newValue) {
     if (frst == NULL) { frst = _linkedListData; last = _linkedListData; }
 
     else { _linkedListData->next = frst; frst = _linkedListData; }
+
+    ++count;
 
 }
 
@@ -99,6 +103,8 @@ void utils::LinkedList<type>::remove(utils::LinkedListData <type>* _toRemove) {
     _toRemove->~LinkedListData();
     free(_toRemove);
 
+    --count; 
+
 }
 
 template <typename type>
@@ -114,6 +120,7 @@ type* utils::LinkedList<type>::removeFrst() {
     else frst = frst->next;
 
     free(_);
+    --count;
 
     return _rtr;
 
