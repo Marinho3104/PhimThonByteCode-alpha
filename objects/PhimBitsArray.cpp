@@ -48,7 +48,7 @@ unsigned char objects::ByteOperation::subBytes(unsigned char _byte1, unsigned ch
 }
 
 
-objects::PhimBitsArray::~PhimBitsArray() { free(bytes); } 
+objects::PhimBitsArray::~PhimBitsArray() { free(bytes); }
 
 objects::PhimBitsArray::PhimBitsArray() : bytes(NULL), bytesLenght(0) {} 
 
