@@ -5,8 +5,6 @@
 
 #include "./PhimObject.h"
 
-#include <iostream>
-
 namespace objects {
     
     struct ByteOperation {
@@ -36,7 +34,7 @@ namespace objects {
 
         void copyBytes(unsigned char*);
 
-        size_t getFullSize();
+        // size_t getFullSize();
 
         unsigned char operator[](int);
 

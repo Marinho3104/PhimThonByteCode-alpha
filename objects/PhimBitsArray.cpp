@@ -1,6 +1,6 @@
 #include "./PhimBitsArray.h"
 
-#include <algorithm>
+// #include <algorithm>
 #include <iostream>
 
 void objects::ByteOperation::getByteRepresentation(unsigned char _byte, char* _rtr) {
@@ -63,10 +63,10 @@ void objects::PhimBitsArray::clean() {
 
 }
 
-void objects::PhimBitsArray::copyBytes(unsigned char* _rtr) {  std::copy_n(bytes, bytesLenght, _rtr); } 
-    //  or for (int _ = 0; _ < bytesLenght; _++) *(_rtr++) = bytes[_]; } 
+void objects::PhimBitsArray::copyBytes(unsigned char* _rtr) { for (int _ = 0; _ < bytesLenght; _++) *(_rtr++) = bytes[_]; } 
+    //  or std::copy_n(bytes, bytesLenght, _rtr); }
 
-size_t objects::PhimBitsArray::getFullSize() { return sizeof(*bytes) * bytesLenght + sizeof(*this); }
+// size_t objects::PhimBitsArray::getFullSize() { return sizeof(*bytes) * bytesLenght + sizeof(*this); }
 
 unsigned char objects::PhimBitsArray::operator[](int _byteIndex) { 
 
