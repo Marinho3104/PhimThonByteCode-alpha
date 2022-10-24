@@ -41,7 +41,7 @@ template <typename type>
 utils::LinkedList<type>::LinkedList() : frst(NULL), last(NULL), count(0) {}
 
 template <typename type>
-void utils::LinkedList<type>::add(type* _newValue) {
+int utils::LinkedList<type>::add(type* _newValue) {
 
     utils::LinkedListData <type>* _linkedListData = (utils::LinkedListData <type>*) malloc(sizeof(utils::LinkedListData <type>));
     new(_linkedListData) utils::LinkedListData <type>(_newValue);
@@ -50,7 +50,7 @@ void utils::LinkedList<type>::add(type* _newValue) {
 
     else { last->next = _linkedListData; last = _linkedListData; }
 
-    ++count;
+    return count++;
 
 }
 
@@ -157,6 +157,17 @@ type* utils::LinkedList<type>::operator[](int _index) {
     for (int _ = 0; _ < _index; _++) _rtr = _rtr->next;
 
     return _rtr->object;    
+
+}
+
+template <typename type>
+int utils::LinkedList<type>::getObjectPosition(type* _c, bool (*func) (type*, type*)) {
+
+    for (int _ = 0; _ < count; _++)
+
+        if (func(operator[](_), _c)) return _;
+
+    return -1;
 
 }
 

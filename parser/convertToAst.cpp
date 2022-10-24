@@ -29,55 +29,80 @@ parser::convertToAst::Ast::Ast() {
 
 }
 
-int parser::convertToAst::Ast::setFullInstruction(
-    utils::LinkedList <token::Token>* _instrSet, token::TokensCollection* _tokensColl, int _crrntTokenPos) {
+void parser::convertToAst::Ast::setFullInstruction(
+    utils::LinkedList <token::Token>* _instrSet, token::TokensCollection* _tokensColl, int* _crrntTokenPos) {
 
-    for (; _crrntTokenPos < _tokensColl->tokens->count; _crrntTokenPos++) {
+    for (; *_crrntTokenPos < _tokensColl->tokens->count; (*_crrntTokenPos)++) {
+
+        std::cout << (*_tokensColl->tokens)[*_crrntTokenPos]->id << " -> " << (*_tokensColl->tokens)[*_crrntTokenPos]->phr << std::endl;
 
         _instrSet->add(
-            (*_tokensColl->tokens)[_crrntTokenPos]
+            (*_tokensColl->tokens)[*_crrntTokenPos]
         );
 
         if (_instrSet->last->object->id == TOKEN_ENDLINE) break;
 
     }
 
-    return _crrntTokenPos;
+    (*_crrntTokenPos)++;
 
 }
 
-//  TODO: Make a function to check if a name already exist in a Linkedist and function to return a position of a values in LinkedList
 utils::LinkedList<parser::convertToAst::Node>* 
-    parser::convertToAst::Ast::getNodes(utils::LinkedList <token::Token>* _instr, int _instrCrrntPos) { 
+    parser::convertToAst::Ast::getNodes(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos) { 
+
+        int _;
+
+        if (!_instrCrrntPos) { // if _instrCrrntPos == NULL just set to value 0
+
+            _ = 0;
+            _instrCrrntPos = &_;
+
+        }
 
         utils::LinkedList <Node>* _rtr = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
         new (_rtr) utils::LinkedList <Node>();
 
-        int _type; bool _pntr;
+        int _type, _keyWordPos, _constsNamesPos, _constsValuesPos; 
+        bool _pntr;
 
-        if ((_type = keyWordsReserved::checkIfWordIsVariableType((*_instr)[_instrCrrntPos]->phr))) {
-        
-            ++_instrCrrntPos;
+        if ((_type = keyWordsReserved::checkIfWordIsVariableType((*_instr)[*_instrCrrntPos]->phr))) { // declaration type
 
-            while(_instrCrrntPos < _instr->count) {
+            if ((_keyWordPos = keyWords->getObjectPosition(&_type, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
+                _keyWordPos = keyWords->add(&_type);
 
-                if ((_pntr = ((*_instr)[_instrCrrntPos]->id == TOKEN_MULTIPLICATION))) { (*_instr)[_instrCrrntPos]->id = TOKEN_POINTER; _instrCrrntPos++; }
+            (*_instrCrrntPos)++;
 
-                constsNames->add(
-                    (*_instr)[_instrCrrntPos++]->phr
-                );
+            while(!utils::compareStrings((*_instr)[(*_instrCrrntPos)]->phr, ";", 1)) { // Keeps the loop until reach ";" <- end of instruction
 
-                keyWords->add( // Not in correct place
-                    &_type
-                );
+                if ((_pntr = ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION))) // Check if is pointer declaration -> int* p;
+                    (*_instr)[(*_instrCrrntPos)++]->id = TOKEN_POINTER;
 
-                if ((*_instr)[_instrCrrntPos++]->id != TOKEN_EQUAL) {
+                if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not added
+                    (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) == -1) 
+                        _constsNamesPos = constsNames->add((*_instr)[(*_instrCrrntPos)]->phr);
+
+                (*_instrCrrntPos)++;
+
+                if ((*_instr)[(*_instrCrrntPos)]->id != TOKEN_EQUAL) { // Just declaration, no assigment -> int p;
+
+                    std::cout << "Added, no assigment" << std::endl;
+                    std::cout << "Is Pointer -> " << _pntr << std::endl;
 
                     _rtr->add(
-                        new NodeVariableDeclaration(keyWords->count - 1, constsNames->count - 1, _pntr, NULL)
+                        new NodeVariableDeclaration(_keyWordPos, _constsNamesPos, _pntr, NULL)
                     );
+
+                    if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) (*_instrCrrntPos)++; // If is not "," means is end of instruction ";", should not be changing value cuss to leave need ";"
+
                 }
-                else {
+
+                else { // Declaration have assigment as well
+
+                    std::cout << "Added with assigment" << std::endl;
+                    std::cout << "Is Pointer -> " << _pntr << std::endl;
+
+                    (*_instrCrrntPos)++;
 
                     utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
                                         
@@ -89,50 +114,54 @@ utils::LinkedList<parser::convertToAst::Node>*
                             !_node->count ? NULL : _node->frst->object
                         )
                     );
+
                 }
 
             }
 
         }
 
-        else if (utils::isNumber((*_instr)[_instrCrrntPos]->phr)) {
+        else if (utils::isNumber((*_instr)[(*_instrCrrntPos)]->phr)) {
 
-            constsValues->add(
-                (*_instr)[_instrCrrntPos++]->phr
-            );
+            if ((*_instr)[(*_instrCrrntPos) + 1]->id == TOKEN_ENDLINE) {
 
-            _rtr->add(
-                new NodeValue(constsValues->count - 1)
-            );
+                 if ((_constsValuesPos = constsValues->getObjectPosition( // Check s if const value is already in LinkedList, if not added
+                    (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) == -1) 
+                        _constsValuesPos = constsValues->add((*_instr)[(*_instrCrrntPos)++]->phr);
+                
 
-        } else _instrCrrntPos++;
+                _rtr->add(
+                    new NodeValue(_constsValuesPos)
+                );
+
+            }
+
+        }
+
+
 
         return _rtr;
 
 }
 
-parser::convertToAst::Ast* 
-    parser::convertToAst::Ast::generateAst(token::TokensCollection* _tokensColl) {
+void parser::convertToAst::Ast::generateAst(token::TokensCollection* _tokensColl) {
 
-        utils::LinkedList <token::Token>* _crrntInstruction = (utils::LinkedList <token::Token>*) malloc(sizeof(utils::LinkedList <token::Token>));
-        new (_crrntInstruction) utils::LinkedList <token::Token>();
+    utils::LinkedList <token::Token>* _crrntInstruction = (utils::LinkedList <token::Token>*) malloc(sizeof(utils::LinkedList <token::Token>));
+    new (_crrntInstruction) utils::LinkedList <token::Token>();
+    int _crrntTokenPos = 0;
 
-        int _crrntInstrcPos = 0;
+    // TODO Need to check for breaked sentences and stuff first
 
-        // TODO Need to check for breaked sentences and stuff first 
+    while(_crrntTokenPos < _tokensColl->tokens->count - 1) { std::cout << "Loop" << std::endl;
 
-        while(_crrntInstrcPos < _tokensColl->tokens->count - 1) {
+        setFullInstruction(_crrntInstruction, _tokensColl, &_crrntTokenPos);
 
-            _crrntInstrcPos = setFullInstruction(_crrntInstruction, _tokensColl, _crrntInstrcPos);
+        body->join(
+            getNodes(_crrntInstruction, NULL)
+        );
 
-            body->join(
-                getNodes(_crrntInstruction, 0)
-            );
+        _crrntInstruction->clean();
 
-            _crrntInstruction->clean();
-
-        }
-
-        return this;
+    }
 
 }

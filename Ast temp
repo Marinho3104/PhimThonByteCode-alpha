@@ -1,0 +1,162 @@
+#include "./convertToAst.h"
+
+#include "./../utils/commonFunctions.h"
+#include "./../utils/linkedList.h"
+#include "./keyWordsReserved.h"
+#include "./token.h"
+
+#include <iostream>
+
+parser::convertToAst::Ast::~Ast() {} // TODO :()
+
+parser::convertToAst::Ast::Ast() {
+
+    body = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
+    new (body) utils::LinkedList <Node>();
+
+    constsNames = (utils::LinkedList <char*>*) malloc(sizeof(utils::LinkedList <char*>));
+    new (constsNames) utils::LinkedList <char*>();
+
+}
+
+parser::convertToAst::NodeVariableDeclaration::~NodeVariableDeclaration() {} // TODO :()
+
+parser::convertToAst::NodeVariableDeclaration::NodeVariableDeclaration(int _name, int _type, bool _pointer) 
+    : varName(_name), varType(_type), isPointer(_pointer) { type = AST_NODE_VARIABLEDECLARATION; }
+
+utils::LinkedList <parser::convertToAst::Node>* parser::convertToAst::handleSingleInstruction(Ast* _ast, utils::LinkedList <token::Token>* _instr) {
+
+    utils::LinkedList <Node>* _instructionNodes = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
+    new (_instructionNodes) utils::LinkedList <Node>();
+
+    int _type;
+    bool _pntr;
+
+    if (_type = keyWordsReserved::checkIfWordIsVariableType(_instr->frst->object->phr)) {
+
+        int _ = 1;
+
+        while(_ != _instr->count) {
+
+            if ((_pntr = (*_instr)[_]->id == TOKEN_MULTIPLICATION)) { (*_instr)[_]->id = TOKEN_POINTER; _++; }
+
+            _ast->constsNames->add(
+                &(*_instr)[_++]->phr
+            );
+
+            _instructionNodes->add(
+                new NodeVariableDeclaration(_ast->constsNames->count - 1, _type, _pntr)
+            );
+
+            if ((*_instr)[_++]->id != TOKEN_EQUAL) continue;
+
+            _instructionNodes->add(
+                new NodeVariableAssigment((*_instr)[_++]->phr, _type, _pntr)
+            );            
+
+        }
+
+    }
+
+    return _instructionNodes;
+
+
+}
+
+parser::convertToAst::Ast* parser::convertToAst::createAst(token::TokensCollection* _tokensColl) {
+
+    parser::convertToAst::Ast* _rtr = (parser::convertToAst::Ast*) malloc(sizeof(parser::convertToAst::Ast));
+    new (_rtr) parser::convertToAst::Ast();
+
+    utils::LinkedList <token::Token>* _crrntInstruction = (utils::LinkedList <token::Token>*) malloc(sizeof(utils::LinkedList <token::Token>));
+    new (_crrntInstruction) utils::LinkedList <token::Token>();
+
+    for (int _ = 0 ; _ < _tokensColl->tokens->count; _++) {
+
+        _crrntInstruction->add(
+            (*_tokensColl->tokens)[_]
+        );
+
+        if (_crrntInstruction->last->object->id != TOKEN_ENDLINE) continue;
+
+        _rtr->body->join(handleSingleInstruction(_rtr, _crrntInstruction));
+
+        _crrntInstruction->clean();
+
+    }
+
+    std::cout << _rtr->body->frst->object->type << std::endl;
+
+}
+
+
+
+
+
+
+#pragma once
+
+#ifndef CONVERTTOAST_H
+#define CONVERTOTAST_H
+
+#define AST_NODE_VARIABLEDECLARATION 0 // declaration of a variable -> int _ = 10
+#define AST_NODE_EXPRESSION 1 // any expression -> 10 + 50
+
+namespace utils { template <typename> struct LinkedList; }
+
+namespace token { struct TokensCollection; struct Token; }
+
+namespace parser::convertToAst {
+
+    struct Node {
+
+        int type;
+        
+    };
+
+    struct Ast {
+
+        utils::LinkedList<Node>* body;
+        utils::LinkedList<char*>* constsNames;
+
+        ~Ast();
+
+        Ast();
+
+    };
+    
+    struct NodeVariableDeclaration : public Node {
+
+        int varNameValue;
+        int varType;
+        bool isPointer;
+
+        ~NodeVariableDeclaration();
+
+        NodeVariableDeclaration(int, int, bool);
+
+    };
+
+    struct NodeVariableAssigment : public Node {
+
+        int varNameValue;
+        int valueVal;
+
+    };
+
+    struct NodeExpression : public Node {
+
+        int type;
+        Node* left, *right;
+
+    };
+
+    struct NodeValue : public Node { int value; };
+
+    utils::LinkedList <parser::convertToAst::Node>* handleSingleInstruction(Ast*, utils::LinkedList <token::Token>*);
+
+    Ast* createAst(token::TokensCollection*);
+
+}
+
+#endif

@@ -12,6 +12,14 @@ bool utils::compareStrings(char* _f, char* _s) {
 
 }
 
+bool utils::compareStrings(char* _f, char* _s, int _l) {
+
+    for (int _ = 0; _ < _l; _++) if (*(_f++) != *(_s++)) return false;
+
+    return true;
+
+}
+
 bool utils::isNumber(char* _) {
 
     while(*_) { if ( *_ < 48 || *_ > 57) return false; _++; }

@@ -27,7 +27,7 @@ namespace utils {
 
         LinkedList();
 
-        void add(type*);
+        int add(type*);
 
         void addFrst(type*);
 
@@ -40,6 +40,8 @@ namespace utils {
         void clean();
 
         type* operator[](int);
+
+        int getObjectPosition(type*, bool (*func) (type*, type*));
 
     };
     
