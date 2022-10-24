@@ -5,7 +5,7 @@
 #ifndef VARIABLES_1_H
 #define VARIABLES_1_H
 
-namespace token { struct Token; }
+namespace token { struct Token; struct TokensCollection; }
 
 namespace parser::convertToTokens {
 
@@ -18,9 +18,9 @@ namespace parser::convertToTokens {
 
     };
 
-    token::Token* handleSingleToken(char**);
+    token::Token* createNewToken(char**);
 
-    void createTokens(char*);
+    token::TokensCollection* createTokens(char*);
 
 }
 

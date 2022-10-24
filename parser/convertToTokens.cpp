@@ -1,11 +1,12 @@
 #include "./convertToTokens.h"
 
 #include "./../utils/commonFunctions.h"
+#include "./../utils/linkedList.h"
 #include "./token.h"
 
 #include <iostream>
 
-token::Token* parser::convertToTokens::handleSingleToken(char** _) {
+token::Token* parser::convertToTokens::createNewToken(char** _) {
 
     char* _phr = 0;
     int _size = 0, _specialId, __, ___;
@@ -27,7 +28,7 @@ token::Token* parser::convertToTokens::handleSingleToken(char** _) {
 
             if (_token->id == TOKEN_COMMENT) 
                 { do _tokenCreation.currentChar++; while(*_tokenCreation.currentChar != '\n'); 
-                    _size = _tokenCreation.currentChar - _tokenCreation.initialChar + 1; }
+                    _size = _tokenCreation.currentChar - _tokenCreation.initialChar + 1; _token = NULL; }
 
             else {  
             
@@ -65,8 +66,6 @@ token::Token* parser::convertToTokens::handleSingleToken(char** _) {
 
         _token->phr[_size] = 0;
 
-        std::cout << _token->phr << " -> " << _token->id << std::endl;
-
     }
 
     *_ += _size; 
@@ -75,13 +74,26 @@ token::Token* parser::convertToTokens::handleSingleToken(char** _) {
 
 }
 
-void parser::convertToTokens::createTokens(char* _src) {
+token::TokensCollection* parser::convertToTokens::createTokens(char* _src) {
+
+    token::TokensCollection* _rtr = new token::TokensCollection();
+    token::Token* _returnedToken;
     
     while(*_src != 0) {
 
         if (*_src == ' ') { _src++; continue;}
 
-        handleSingleToken(&_src);
+        if ((_returnedToken = createNewToken(&_src)) != NULL)
+
+            _rtr->tokens->add(_returnedToken);
 
     }
+
+    return _rtr;
+    
 }
+
+
+
+
+

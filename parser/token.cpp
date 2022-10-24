@@ -1,10 +1,25 @@
 #include "./token.h"
 
+#include "./../utils/linkedList.h"
 #include <iostream>
 
 token::Token::~Token() { free(phr); }
         
 token::Token::Token() : phr(NULL), id(0) {}
+
+token::TokensCollection::~TokensCollection() {
+
+    if (tokens != NULL) tokens->~LinkedList();
+    free(tokens);
+
+}
+
+token::TokensCollection::TokensCollection() {
+
+    tokens = (utils::LinkedList <token::Token>*) malloc(sizeof(utils::LinkedList <token::Token>));
+    new (tokens) utils::LinkedList <token::Token>();
+
+}
 
 int token::checkFirstCharacterSpecialToken(int _frst) {
 

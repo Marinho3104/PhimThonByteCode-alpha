@@ -1,8 +1,7 @@
 #include "./linkedList.h"
 
-#include "./../vm/assignedVariable.h"
-#include "./../objects/PhimObject.h"
-#include "./../vm/instruction.h"
+#include "./../parser/convertToAst.h"
+#include "./../parser/token.h"
 
 #include <iostream>
 
@@ -145,13 +144,19 @@ type* utils::LinkedList<type>::operator[](int _index) {
 }
 
 
-template class utils::LinkedListData<vm::AssignedVariable>;
-template class utils::LinkedListData<objects::PhimObject>;
-template class utils::LinkedListData<vm::VariableName>;
-template class utils::LinkedListData<vm::Instruction>;
+template class utils::LinkedListData<parser::convertToAst::Node>;
+template class utils::LinkedListData<token::Token>;
 
-template class utils::LinkedList<vm::AssignedVariable>;
-template class utils::LinkedList<objects::PhimObject>;
-template class utils::LinkedList<vm::VariableName>;
-template class utils::LinkedList<vm::Instruction>;
+template class utils::LinkedList<parser::convertToAst::Node>;
+template class utils::LinkedList<token::Token>;
+
+// template class utils::LinkedListData<vm::AssignedVariable>;
+// template class utils::LinkedListData<objects::PhimObject>;
+// template class utils::LinkedListData<vm::VariableName>;
+// template class utils::LinkedListData<vm::Instruction>;
+
+// template class utils::LinkedList<vm::AssignedVariable>;
+// template class utils::LinkedList<objects::PhimObject>;
+// template class utils::LinkedList<vm::VariableName>;
+// template class utils::LinkedList<vm::Instruction>;
 

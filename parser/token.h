@@ -86,7 +86,7 @@
 
 // Operators others //
 
-
+namespace utils { template <typename> struct LinkedList; }
 
 namespace token {
 
@@ -98,6 +98,16 @@ namespace token {
         ~Token();
         
         Token();
+
+    };
+
+    struct TokensCollection {
+
+        utils::LinkedList <token::Token>* tokens;
+
+        ~TokensCollection();
+
+        TokensCollection();
 
     };
 
