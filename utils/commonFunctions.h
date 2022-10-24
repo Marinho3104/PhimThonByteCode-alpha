@@ -10,6 +10,8 @@ namespace utils {
 
     bool compareStrings(char*, char*);
 
+    bool isNumber(char*);
+
 }
 
 #endif

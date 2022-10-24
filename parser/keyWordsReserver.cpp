@@ -10,4 +10,6 @@ int keyWordsReserved::checkIfWordIsVariableType(char* _toCheck) {
         utils::compareStrings(_toCheck, "int")
     ) return KEYWORD_INT;
 
+    return 0;
+
 }

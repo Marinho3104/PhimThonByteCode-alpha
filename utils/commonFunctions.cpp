@@ -1,5 +1,7 @@
 #include "./commonFunctions.h"
 
+#include <iostream>
+
 bool utils::compareStrings(char* _f, char* _s) {
 
     if (*_f == 0 && *_s == 0) return true; 
@@ -9,3 +11,14 @@ bool utils::compareStrings(char* _f, char* _s) {
     return true;
 
 }
+
+bool utils::isNumber(char* _) {
+
+    while(*_) { if ( *_ < 48 || *_ > 57) return false; _++; }
+
+    return true;
+
+}
+
+
+

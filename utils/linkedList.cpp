@@ -69,6 +69,23 @@ void utils::LinkedList<type>::addFrst(type* _newValue) {
 }
 
 template <typename type>
+void utils::LinkedList<type>::join(utils::LinkedList <type>* _toJoin) {
+
+    int _  = 0;
+
+    if (!frst) {
+
+        frst = _toJoin->frst;
+        last = frst;
+        ++_;
+
+    }
+
+    for (; _ < _toJoin->count; _++) add( (*_toJoin)[_] );
+
+}
+
+template <typename type>
 void utils::LinkedList<type>::remove(utils::LinkedListData <type>* _toRemove) {
 
     if (_toRemove == frst) {
@@ -146,9 +163,13 @@ type* utils::LinkedList<type>::operator[](int _index) {
 
 template class utils::LinkedListData<parser::convertToAst::Node>;
 template class utils::LinkedListData<token::Token>;
+template class utils::LinkedListData<int>;
+template class utils::LinkedListData<char>;
 
 template class utils::LinkedList<parser::convertToAst::Node>;
 template class utils::LinkedList<token::Token>;
+template class utils::LinkedList<int>;
+template class utils::LinkedList<char>;
 
 // template class utils::LinkedListData<vm::AssignedVariable>;
 // template class utils::LinkedListData<objects::PhimObject>;

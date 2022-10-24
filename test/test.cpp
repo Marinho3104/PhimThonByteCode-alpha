@@ -16,6 +16,11 @@ int main() {
 
     std::cout << "Done tokens coll" << std::endl;
 
-    parser::convertToAst::createAst(_tokensColl);
+    parser::convertToAst::Ast* _ast = (parser::convertToAst::Ast*) malloc(sizeof(parser::convertToAst::Ast));
+    new (_ast) parser::convertToAst::Ast();
+
+    _ast->generateAst(_tokensColl);
+
+    std::cout << ( (parser::convertToAst::NodeValue*) ((parser::convertToAst::NodeVariableDeclaration*) _ast->body->frst->object)->valuePos)->valuePos << std::endl;
 
 }

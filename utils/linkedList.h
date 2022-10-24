@@ -31,6 +31,8 @@ namespace utils {
 
         void addFrst(type*);
 
+        void join(LinkedList <type>*);
+
         void remove(LinkedListData <type>*);
 
         type* removeFrst();
