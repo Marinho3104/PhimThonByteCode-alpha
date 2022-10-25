@@ -5,7 +5,9 @@
 
 #define AST_NODE_VALUE 1 //Just represent a const value
 #define AST_NODE_VARIABLEDECLARATION 2 // Represent a variable declaration
-#define AST_NODE_ARITHMETRICEXPRESSION 3 // Present a arithmetric expression
+#define AST_NODE_VARIABLEASSIGNMET 3 // Represent a variable assignmet
+#define AST_NODE_ARITHMETRICEXPRESSION 4 // Present a arithmetric expression
+#define AST_NODE_VARIABLEVALUE 5 // resent a const name position
 
 namespace utils { template <typename> struct LinkedList; }
 
@@ -31,8 +33,16 @@ namespace parser::convertToAst {
         int variableTypePos; // Variable type pos in const names
         int namePos; // Value pos to const names in table
         bool isPointer; // If variabled declared is pointer
-        Node* valuePos; // Value assigned to this variable | NULL if no value assigned
+        Node* value; // Value assigned to this variable | NULL if no value assigned
         NodeVariableDeclaration(int, int, bool, Node*);
+    };
+
+    /*  Node to hold a variable assignmet*/
+    struct NodeVariableAssignmet : public Node {
+        int namePos; // Value pos to const names in table 
+        int assignmentPos; // Value pos to consts assignment in table
+        Node* value; // Value assigned to this variable | NULL if no value assigned
+        NodeVariableAssignmet(int, int, Node*);
     };
 
     /* Node to hold a arithmetic expression 
@@ -40,17 +50,35 @@ namespace parser::convertToAst {
     */
     struct NodeArithmetricExpression : public Node {
         Node* frst, *scnd; // Value of first and second values 
-        int expressionValue; // Expression value representation 
+        int expressionPos; // Expression value representation 
         NodeArithmetricExpression(Node*, Node*, int);
+    };
+
+    /* Node to hold a value of a variable name */
+    struct NodeVariableValue : public Node {
+        int namePos; // Value pos to const names in table
+        NodeVariableValue(int);
+    };
+
+    /* Hol any type of excetion occur in Ast generation*/
+    struct AstException {
+        char* description; // Exception description
+        AstException(char*);
+        char* what();
     };
 
     /* Ast */
     struct Ast {
         utils::LinkedList<Node>* body; // Hold all Nodes necessary to given TokensCollection
         utils::LinkedList<int>* keyWords; // Hold all different keywords used accross TokensCollection
+        utils::LinkedList<int>* assignment; // Hold all different assignment used accross TokensCollection
         utils::LinkedList<char>* constsNames; // Hold all different constants Name accross TokensCollection
         utils::LinkedList<char>* constsValues; // Hold all different constants Values accross TokensCollection
+        utils::LinkedList<int>* constsExpressionOperator; // Hold all different constants Values accross TokensCollection
+        AstException* exception; // If any exception occur during Ast generation proccess must be saved here
         Ast();
+
+        void setException(char*); // Set and throw exception
 
         /* Set all tokens of a single instruction into the given variable
         *   @param _instrSet Instruction variable to set
@@ -72,7 +100,6 @@ namespace parser::convertToAst {
 
 
     };
-
 
 }
 

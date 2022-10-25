@@ -18,6 +18,7 @@
 #define TOKEN_QUESTIONMARK 8
 #define TOKEN_TWOPOINTS 9
 
+// Common Operators //
 
 // Arithmetic operators // 
 
@@ -116,6 +117,16 @@ namespace token {
     int checkSecondCharacterSpecialToken(int, int);
 
     int checkThirdCharacterSpecialToken(int, int, int);
+
+    /* Check if a given Token Id is a acceptable operator to expression
+    *   Needs to be part of Arithmetic, Relational, Logical, Bitwise operators
+    */
+    bool checkIfExpressionOperator(int);
+
+    /* Check if a given Token Id is a acceptable operator to assignment
+    *   Needs to be part of Assignment operators
+    */
+    bool checkIfOperatorIsAssignment(int);
 
 }
 

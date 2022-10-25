@@ -14,4 +14,5 @@ namespace keyWordsReserved {
     int checkIfWordIsVariableType(char*);
 
 }
+
 #endif

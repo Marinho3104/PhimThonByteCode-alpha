@@ -10,7 +10,7 @@ int main() {
 
     token::TokensCollection* _tokensColl = parser::convertToTokens::createTokens(
 
-    "int* l;int l = 10;"
+    "int ola = 10; ola = 10 + ola;"
 
     );
 

@@ -1,0 +1,117 @@
+utils::LinkedList <token::Token>* _crrntInstruction = (utils::LinkedList <token::Token>*) malloc(sizeof(utils::LinkedList <token::Token>));
+        new (_crrntInstruction) utils::LinkedList <token::Token>();
+
+        int _crrntInstrcPos = 0, _crrntTokenPos;
+
+        // TODO Need to check for breaked sentences and stuff first 
+
+        while(_crrntInstrcPos < _tokensColl->tokens->count - 1) {
+
+            _crrntTokenPos = 0;
+
+            std::cout << "loop" << std::endl;
+
+            _crrntInstrcPos = setFullInstruction(_crrntInstruction, _tokensColl, _crrntInstrcPos);
+
+            body->join(
+                getNodes(_crrntInstruction, &_crrntTokenPos)
+            );
+
+            _crrntInstruction->clean();
+
+        }
+
+        return this;
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        std::cout << "If -> " << (*_instr)[(*_instrCrrntPos)]->phr << std::endl;
+
+        utils::LinkedList <Node>* _rtr = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
+        new (_rtr) utils::LinkedList <Node>();
+
+        int _type, _keyWordPos = 0; bool _pntr;
+
+        // std::cout << "If -> " << (*_instr)[(*_instrCrrntPos)]->phr << std::endl;
+
+        if ((_type = keyWordsReserved::checkIfWordIsVariableType((*_instr)[(*_instrCrrntPos)]->phr))) {
+
+            // std::cout << "in declaration" << std::endl;
+            
+            if ((_keyWordPos = keyWords->getObjectPosition(&_type, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
+                
+                keyWords->add(&_type);
+        
+            ++(*_instrCrrntPos);
+
+            while(!utils::compareStrings((*_instr)[(*_instrCrrntPos)]->phr, ";", 1)) {
+                
+                if ((_pntr = ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION))) { (*_instr)[(*_instrCrrntPos)]->id = TOKEN_POINTER; (*_instrCrrntPos)++; }
+                
+                constsNames->add(
+                    (*_instr)[(*_instrCrrntPos)++]->phr
+                );
+
+                if ((*_instr)[(*_instrCrrntPos)++]->id != TOKEN_EQUAL) {
+
+                    std::cout << "Added ç" << std::endl;
+
+                    _rtr->add(
+                        new NodeVariableDeclaration(keyWords->count - 1, constsNames->count - 1, _pntr, NULL)
+                    );
+                }
+                else {
+
+                    std::cout << "Added" << std::endl;
+
+                    utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
+                                        
+                    _rtr->add(
+                        new NodeVariableDeclaration(
+                            keyWords->count - 1, 
+                            constsNames->count - 1, 
+                            _pntr, 
+                            !_node->count ? NULL : _node->frst->object
+                        )
+                    );
+                }
+
+            }
+
+        }
+
+        else if (utils::isNumber((*_instr)[(*_instrCrrntPos)]->phr)) {
+
+            constsValues->add(
+                (*_instr)[(*_instrCrrntPos)++]->phr
+            );
+
+            (*_instrCrrntPos)++;
+
+            _rtr->add(
+                new NodeValue(constsValues->count - 1)
+            );
+
+        } //else _instrCrrntPos++;
+
+        return _rtr;
