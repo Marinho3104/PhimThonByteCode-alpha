@@ -6,8 +6,9 @@
 #define AST_NODE_VALUE 1 //Just represent a const value
 #define AST_NODE_VARIABLEDECLARATION 2 // Represent a variable declaration
 #define AST_NODE_VARIABLEASSIGNMET 3 // Represent a variable assignmet
-#define AST_NODE_ARITHMETRICEXPRESSION 4 // Present a arithmetric expression
+#define AST_NODE_EXPRESSION 4 // Present a expression
 #define AST_NODE_VARIABLEVALUE 5 // resent a const name position
+#define AST_NODE_PARENTHESIS 6 // resent a const name position
 
 namespace utils { template <typename> struct LinkedList; }
 
@@ -45,19 +46,36 @@ namespace parser::convertToAst {
         NodeVariableAssignmet(int, int, Node*);
     };
 
-    /* Node to hold a arithmetic expression 
+    /* Node to hold a Expression
     *   First and Second value can either a NodeValue or NodeArithmetricExpression
     */
-    struct NodeArithmetricExpression : public Node {
+    struct NodeExpression : public Node {
         Node* frst, *scnd; // Value of first and second values 
         int expressionPos; // Expression value representation 
-        NodeArithmetricExpression(Node*, Node*, int);
+        NodeExpression(Node*, Node*, int);
+        /* Sort expression by priority*/
+        void sortByPriority(utils::LinkedList<int>*);
+        /* Return value by expression value
+        *   --> return table <--
+        *       1 -> ()
+        *       2 -> * / % ++ --
+        *       3 -> + -
+        *       4 -> & | ^ ~ << >>
+        *       5 -> && || !
+        */
+        int getExpressionPriority(utils::LinkedList<int>*);
     };
 
     /* Node to hold a value of a variable name */
     struct NodeVariableValue : public Node {
         int namePos; // Value pos to const names in table
         NodeVariableValue(int);
+    };
+
+    /* Node to mark a parenthesis occurrence */
+    struct NodeParenthesis : public Node {
+        Node* value; // Value inside parenthesis 
+        NodeParenthesis(Node*);
     };
 
     /* Hol any type of excetion occur in Ast generation*/
@@ -86,6 +104,24 @@ namespace parser::convertToAst {
         *   @param _crrntTokenPos Current token position
         */
         void setFullInstruction(utils::LinkedList <token::Token>*, token::TokensCollection*, int*);
+
+        /**/
+        utils::LinkedList<parser::convertToAst::Node>* generateVariableDeclaration(utils::LinkedList <token::Token>*, int*, int);
+
+        /**/
+        parser::convertToAst::Node* generateValue(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateVariableValue(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateExpression(utils::LinkedList <token::Token>*, int*, bool, bool);
+
+        /**/
+        parser::convertToAst::Node* generateVariableAssignment(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateParenthesis(utils::LinkedList <token::Token>*, int*);
 
         /*  Generate a new Node
         *   @param  _instr Instruction to work with

@@ -16,11 +16,48 @@ parser::convertToAst::NodeVariableDeclaration::NodeVariableDeclaration(int _vari
 parser::convertToAst::NodeVariableAssignmet::NodeVariableAssignmet(int _namePos, int _assignmentPos, Node* _value) :
     namePos(_namePos), assignmentPos(_assignmentPos), value(_value) { type = AST_NODE_VARIABLEASSIGNMET; }
 
-parser::convertToAst::NodeArithmetricExpression::NodeArithmetricExpression(Node* _frst, Node* _scnd, int _exprPos) :
-    frst(_frst), scnd(_scnd), expressionPos(_exprPos) { type = AST_NODE_ARITHMETRICEXPRESSION; }
+parser::convertToAst::NodeExpression::NodeExpression(Node* _frst, Node* _scnd, int _exprPos) :
+    frst(_frst), scnd(_scnd), expressionPos(_exprPos) { type = AST_NODE_EXPRESSION; }
+
+void parser::convertToAst::NodeExpression::sortByPriority(utils::LinkedList<int>* _valTable) {
+
+    if (expressionPos == -1) return;
+
+    else if (frst->type == AST_NODE_PARENTHESIS) { // Parenthesis 
+
+    }
+
+    else if (frst->type == AST_NODE_EXPRESSION) { // frst is another expression 
+
+        (
+            (NodeExpression*) frst
+        )->sortByPriority(_valTable);
+
+        // ??
+
+    }
+
+}
+
+int parser::convertToAst::NodeExpression::getExpressionPriority(utils::LinkedList<int>* _valTable) {
+
+    int _exprValue = *((*_valTable)[expressionPos]);
+
+    if (_exprValue >= TOKEN_MULTIPLICATION && _exprValue <= TOKEN_DECREMENT) return 2;
+    if (_exprValue >= TOKEN_ADDITION && _exprValue <= TOKEN_SUBTRACTION) return 3;
+    if (_exprValue >= TOKEN_BITWISEAND && _exprValue <= TOKEN_BITWISERIGHTSHIFT) return 4;
+    if (_exprValue >= TOKEN_AND && _exprValue <= TOKEN_NOT) return 5;
+
+    return -1;
+
+}
+
 
 parser::convertToAst::NodeVariableValue::NodeVariableValue(int _namePos) : 
     namePos(_namePos) { type = AST_NODE_VARIABLEVALUE; }
+
+parser::convertToAst::NodeParenthesis::NodeParenthesis(Node* _node) 
+    : value(_node) { type = AST_NODE_PARENTHESIS; }
 
 parser::convertToAst::AstException::AstException(char* _description) : description(_description) {}
 
@@ -79,8 +116,191 @@ void parser::convertToAst::Ast::setFullInstruction(
 }
 
 utils::LinkedList<parser::convertToAst::Node>* 
+    parser::convertToAst::Ast::generateVariableDeclaration(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos, int _type) {
+
+        utils::LinkedList <Node>* _rtr = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
+        new (_rtr) utils::LinkedList <Node>();
+
+        int _keyWordPos, _constsNamesPos;
+        bool _pntr;
+
+        if ((_keyWordPos = keyWords->getObjectPosition(&_type, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
+            _keyWordPos = keyWords->add(&_type);
+
+        (*_instrCrrntPos)++;
+
+        while(!utils::compareStrings((*_instr)[(*_instrCrrntPos)]->phr, ";", 1)) { // Keeps the loop until reach ";" <- end of instruction
+
+            if ((_pntr = ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION))) // Check if is pointer declaration -> int* p;
+                (*_instr)[(*_instrCrrntPos)++]->id = TOKEN_POINTER;
+
+            if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not added
+                (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) != -1) setException("Redefetion of variable"); 
+
+            else _constsNamesPos = constsNames->add((*_instr)[(*_instrCrrntPos)]->phr);
+
+            (*_instrCrrntPos)++;
+
+            if ((*_instr)[(*_instrCrrntPos)]->id != TOKEN_EQUAL) { // Just declaration, no assigment -> int p;
+
+                std::cout << "Added, no assigment" << std::endl;
+
+                _rtr->add(
+                    new NodeVariableDeclaration(_keyWordPos, _constsNamesPos, _pntr, NULL)
+                );
+
+                if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) (*_instrCrrntPos)++; // If is not "," means is end of instruction ";", should not be changing value cuss to leave need ";"
+
+            }
+
+            else { // Declaration have assigment as well
+
+                std::cout << "Added with assigment" << std::endl;
+
+                (*_instrCrrntPos)++;
+
+                utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
+                                    
+                _rtr->add(
+                    new NodeVariableDeclaration(
+                        _keyWordPos, 
+                        _constsNamesPos, 
+                        _pntr, 
+                        !_node->count ? NULL : _node->frst->object
+                    )
+                );
+
+            }
+
+        }
+
+        return _rtr;
+
+}
+
+parser::convertToAst::Node* 
+    parser::convertToAst::Ast::generateValue(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos) {
+
+        std::cout << "--> Node Value added <--" << std::endl;
+        
+        int _constsValuesPos;
+
+        if ((_constsValuesPos = constsValues->getObjectPosition( // Check s if const value is already in LinkedList, if not added
+            (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) == -1) 
+                _constsValuesPos = constsValues->add((*_instr)[(*_instrCrrntPos)]->phr);
+        (*_instrCrrntPos)++;
+
+        return new NodeValue(_constsValuesPos);
+
+}
+
+parser::convertToAst::Node* 
+    parser::convertToAst::Ast::generateVariableValue(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos) {
+
+        std::cout << "--> Variable value use  <--" << std::endl;
+        
+        int _constsNamesPos;
+
+        if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not throw exception
+            (*_instr)[(*_instrCrrntPos)++]->phr, &utils::compareStrings)) == -1) setException("Variable not defined");
+
+
+        return new NodeVariableValue(_constsNamesPos);
+
+}
+
+parser::convertToAst::Node* 
+    parser::convertToAst::Ast::generateExpression(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos, bool _isConst, bool _frstParenthesis) {
+
+        int _frstValuePos, _expressionOperatorPos;
+        parser::convertToAst::Node* _frstValue;
+        utils::LinkedList<Node> *_node;
+
+        std::cout << "--> Arithmetric expression added <--" << std::endl;
+
+        if (_frstParenthesis) _frstValue = generateParenthesis(_instr, _instrCrrntPos);
+
+        else _frstValue = _isConst ? generateValue(_instr, _instrCrrntPos) : generateVariableValue(_instr, _instrCrrntPos);
+
+        if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_ENDLINE) {
+            _node = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>)); 
+            new (_node) utils::LinkedList <Node>();
+
+            _expressionOperatorPos = -1;
+        }
+
+        else {
+         
+            if ((_expressionOperatorPos = constsExpressionOperator->getObjectPosition( // Check s if assignment type is already in LinkedList if not added
+                &(*_instr)[(*_instrCrrntPos)]->id, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
+                    _expressionOperatorPos = constsExpressionOperator->add(&(*_instr)[(*_instrCrrntPos)]->id);
+            (*_instrCrrntPos)++;
+
+            _node = getNodes(_instr, _instrCrrntPos);
+            
+        }
+
+        return new NodeExpression(
+            _frstValue,
+            !_node->count ? NULL : _node->frst->object,
+            _expressionOperatorPos
+        );
+
+}
+
+parser::convertToAst::Node* 
+    parser::convertToAst::Ast::generateVariableAssignment(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos) {
+
+        std::cout << "--> Assignment added <--" << std::endl;
+        
+        int _constsNamesPos, _assignmentPos;
+
+        if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not throw exception
+            (*_instr)[(*_instrCrrntPos)++]->phr, &utils::compareStrings)) == -1) setException("Variable not defined");
+
+        if ((_assignmentPos = assignment->getObjectPosition( // Check s if assignment type is already in LinkedList if not added
+            &(*_instr)[(*_instrCrrntPos)++]->id, [](int* _f, int* _s) -> bool { return *_f == *_s; })) != -1) 
+                _assignmentPos = assignment->add(&(*_instr)[(*_instrCrrntPos)++]->id);
+        
+        utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
+
+
+        return new NodeVariableAssignmet(
+            _constsNamesPos,
+            _assignmentPos, 
+            !_node->count ? NULL : _node->frst->object
+        );
+
+}
+
+parser::convertToAst::Node* 
+    parser::convertToAst::Ast::generateParenthesis(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos) {
+
+        // Act like the only possible case is Expression //
+
+        std::cout << "--> Generate Parenthesis <--" << std::endl;
+
+        (*_instrCrrntPos)++;
+
+        new NodeParenthesis(
+            generateExpression(
+                _instr, 
+                _instrCrrntPos, 
+                utils::isNumber((*_instr)[*_instrCrrntPos]->phr),
+                0
+            )
+        );
+
+        (*_instrCrrntPos)++;
+
+}
+
+utils::LinkedList<parser::convertToAst::Node>* 
     parser::convertToAst::Ast::getNodes(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos) { 
 
+        utils::LinkedList <Node>* _rtr = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
+        new (_rtr) utils::LinkedList <Node>();
+        
         int _;
 
         if (!_instrCrrntPos) { // if _instrCrrntPos == NULL just set to value 0
@@ -90,105 +310,46 @@ utils::LinkedList<parser::convertToAst::Node>*
 
         }
 
-        utils::LinkedList <Node>* _rtr = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
-        new (_rtr) utils::LinkedList <Node>();
+        // std::cout << "Get node -> " << (*_instr)[*_instrCrrntPos]->id << " " << (*_instr)[*_instrCrrntPos]->phr << std::endl;
+        // std::cout << "Next Instr -> " << (*_instr)[(*_instrCrrntPos) + 1]->id << " " << (*_instr)[(*_instrCrrntPos) + 1]->phr << std::endl;
 
-        int _type, _keyWordPos, _assignmentPos, _expressionOperatorPos, _constsNamesPos, _constsValuesPos; 
+        int _type, _assignmentPos, _expressionOperatorPos, _constsValuesPos, _keyWordPos, _constsNamesPos; 
         bool _pntr;
 
-        if ((_type = keyWordsReserved::checkIfWordIsVariableType((*_instr)[*_instrCrrntPos]->phr))) { // declaration type
+        if ((_type = keyWordsReserved::checkIfWordIsVariableType((*_instr)[*_instrCrrntPos]->phr))) { // declaration type or function declaration
 
-            if ((_keyWordPos = keyWords->getObjectPosition(&_type, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
-                _keyWordPos = keyWords->add(&_type);
+            // Make work with function declaration // TODO
 
-            (*_instrCrrntPos)++;
+            if ((*_instr)[(*_instrCrrntPos) + 2]->id == TOKEN_EQUAL) // declaration type
+                _rtr->join(
+                    generateVariableDeclaration(_instr, _instrCrrntPos, _type)
+                );
 
-            while(!utils::compareStrings((*_instr)[(*_instrCrrntPos)]->phr, ";", 1)) { // Keeps the loop until reach ";" <- end of instruction
-
-                if ((_pntr = ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION))) // Check if is pointer declaration -> int* p;
-                    (*_instr)[(*_instrCrrntPos)++]->id = TOKEN_POINTER;
-
-                if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not added
-                    (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) != -1) setException("Redefetion of variable"); 
-
-                else _constsNamesPos = constsNames->add((*_instr)[(*_instrCrrntPos)]->phr);
-
-                (*_instrCrrntPos)++;
-
-                if ((*_instr)[(*_instrCrrntPos)]->id != TOKEN_EQUAL) { // Just declaration, no assigment -> int p;
-
-                    std::cout << "Added, no assigment" << std::endl;
-
-                    _rtr->add(
-                        new NodeVariableDeclaration(_keyWordPos, _constsNamesPos, _pntr, NULL)
-                    );
-
-                    if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) (*_instrCrrntPos)++; // If is not "," means is end of instruction ";", should not be changing value cuss to leave need ";"
-
-                }
-
-                else { // Declaration have assigment as well
-
-                    std::cout << "Added with assigment" << std::endl;
-
-                    (*_instrCrrntPos)++;
-
-                    utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
-                                        
-                    _rtr->add(
-                        new NodeVariableDeclaration(
-                            _keyWordPos, 
-                            _constsNamesPos, 
-                            _pntr, 
-                            !_node->count ? NULL : _node->frst->object
-                        )
-                    );
-
-                }
-
-            }
+            else setException("Unexpected token");
 
         }
 
         else if (utils::isNumber((*_instr)[(*_instrCrrntPos)]->phr)) {
 
-            if ((*_instr)[(*_instrCrrntPos) + 1]->id == TOKEN_ENDLINE) { // Just value
+            if ((*_instr)[(*_instrCrrntPos) + 1]->id == TOKEN_ENDLINE || (*_instr)[(*_instrCrrntPos) + 1]->id == TOKEN_CLOSEPARENTHESES) // Just value
 
-                if ((_constsValuesPos = constsValues->getObjectPosition( // Check s if const value is already in LinkedList, if not added
-                    (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) == -1) 
-                        _constsValuesPos = constsValues->add((*_instr)[(*_instrCrrntPos)++]->phr);
-                
                 _rtr->add(
-                    new NodeValue(_constsValuesPos)
+                    generateValue(_instr, _instrCrrntPos)
                 );
 
-            }
-
-            else if (token::checkIfExpressionOperator((*_instr)[(*_instrCrrntPos) + 1]->id)) {
-
-                std::cout << "--> Arithmetric expression added <--" << std::endl;
-
-                if ((_constsValuesPos = constsValues->getObjectPosition( // Check s if const value is already in LinkedList, if not added
-                    (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) == -1) 
-                        _constsValuesPos = constsValues->add((*_instr)[(*_instrCrrntPos)]->phr);
-                (*_instrCrrntPos)++;
-
-                if ((_expressionOperatorPos = constsExpressionOperator->getObjectPosition( // Check s if assignment type is already in LinkedList if not added
-                    &(*_instr)[(*_instrCrrntPos)]->id, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
-                        _expressionOperatorPos = constsExpressionOperator->add(&(*_instr)[(*_instrCrrntPos)]->id);
-                (*_instrCrrntPos)++;
-
-                utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
+            else if (token::checkIfExpressionOperator((*_instr)[(*_instrCrrntPos) + 1]->id)) // Expression
 
                 _rtr->add(
-                    new NodeArithmetricExpression(
-                        new NodeValue(_constsValuesPos),
-                        !_node->count ? NULL : _node->frst->object,
-                        _expressionOperatorPos
-                    )
-                );                           
+                    generateExpression(_instr, _instrCrrntPos, 1, 0)
+                );
 
-            }
+        }
+
+        else if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_OPENPARENTHESES) { // Open parenthesis. just expression ?
+
+            _rtr->add(
+                generateExpression(_instr, _instrCrrntPos, 0, 1)
+            );
 
         }
 
@@ -196,41 +357,26 @@ utils::LinkedList<parser::convertToAst::Node>*
 
             if (token::checkIfOperatorIsAssignment((*_instr)[(*_instrCrrntPos) + 1]->id)) { // assignment to variable <- ola = 10;
 
-                if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not throw exception
-                    (*_instr)[(*_instrCrrntPos)++]->phr, &utils::compareStrings)) == -1) setException("Variable not defined");
-
-                if ((_assignmentPos = assignment->getObjectPosition( // Check s if assignment type is already in LinkedList if not added
-                    &(*_instr)[(*_instrCrrntPos)++]->id, [](int* _f, int* _s) -> bool { return *_f == *_s; })) != -1) 
-                        _assignmentPos = assignment->add(&(*_instr)[(*_instrCrrntPos)++]->id);
-              
-                
-                std::cout << "Assignment added" << std::endl;
-
-                utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
-
-
                 _rtr->add(
-                    new NodeVariableAssignmet(
-                        _constsNamesPos,
-                        _assignmentPos, 
-                        !_node->count ? NULL : _node->frst->object
-                    )
+                    generateVariableAssignment(_instr, _instrCrrntPos)
                 );
 
             }
+
+            else if (token::checkIfExpressionOperator((*_instr)[(*_instrCrrntPos) + 1]->id)) // Expression
+
+                _rtr->add(
+                    generateExpression(_instr, _instrCrrntPos, 0, 0)
+                );
 
             else {
 
-                if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not throw exception
-                    (*_instr)[(*_instrCrrntPos)++]->phr, &utils::compareStrings)) == -1) setException("Variable not defined");
-
-                std::cout << "--> Variable value use  <--" << std::endl;
-
                 _rtr->add(
-                    new NodeVariableValue(_constsNamesPos)
+                    generateVariableValue(_instr, _instrCrrntPos)
                 );
 
             }
+
         }
 
         return _rtr;
