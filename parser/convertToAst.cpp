@@ -19,25 +19,7 @@ parser::convertToAst::NodeVariableAssignmet::NodeVariableAssignmet(int _namePos,
 parser::convertToAst::NodeExpression::NodeExpression(Node* _frst, Node* _scnd, int _exprPos) :
     frst(_frst), scnd(_scnd), expressionPos(_exprPos) { type = AST_NODE_EXPRESSION; }
 
-void parser::convertToAst::NodeExpression::sortByPriority(utils::LinkedList<int>* _valTable) {
-
-    if (expressionPos == -1) return;
-
-    else if (frst->type == AST_NODE_PARENTHESIS) { // Parenthesis 
-
-    }
-
-    else if (frst->type == AST_NODE_EXPRESSION) { // frst is another expression 
-
-        (
-            (NodeExpression*) frst
-        )->sortByPriority(_valTable);
-
-        // ??
-
-    }
-
-}
+void parser::convertToAst::NodeExpression::sortByPriority(utils::LinkedList<int>* _valTable) {} // Dont think is needed, already have the priority level function
 
 int parser::convertToAst::NodeExpression::getExpressionPriority(utils::LinkedList<int>* _valTable) {
 
@@ -52,12 +34,16 @@ int parser::convertToAst::NodeExpression::getExpressionPriority(utils::LinkedLis
 
 }
 
-
 parser::convertToAst::NodeVariableValue::NodeVariableValue(int _namePos) : 
     namePos(_namePos) { type = AST_NODE_VARIABLEVALUE; }
 
 parser::convertToAst::NodeParenthesis::NodeParenthesis(Node* _node) 
     : value(_node) { type = AST_NODE_PARENTHESIS; }
+
+parser::convertToAst::NodeFunctionDeclaration::NodeFunctionDeclaration(
+    int _rtrTypePos, int _funcNamePos, utils::LinkedList <int>* _scopeTypePos, utils::LinkedList <int>* _scopeNamePos, utils::LinkedList <Node>* _body) 
+        : rtrTypePos(_rtrTypePos), funcNamePos(_funcNamePos), scopeTypePos(_scopeTypePos), scopeNamePos(_scopeNamePos), body(_body) 
+            { type = AST_NODE_FUNCTIONDECLARATION; }
 
 parser::convertToAst::AstException::AstException(char* _description) : description(_description) {}
 
@@ -295,6 +281,28 @@ parser::convertToAst::Node*
 
 }
 
+parser::convertToAst::Node* 
+    parser::convertToAst::Ast::generateFunctionDeclaration(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos, int _type) {
+
+        std::cout << "--> Function declaration <--" << std::endl;
+
+        int _keyWordPos, _constsNamesPos;
+        bool _pntr;
+
+        if ((_keyWordPos = keyWords->getObjectPosition(&_type, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
+            _keyWordPos = keyWords->add(&_type);
+
+        (*_instrCrrntPos)++;
+
+        if ((_constsNamesPos = constsNames->getObjectPosition( // Check s if const name is already in LinkedList if not added
+            (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) != -1) setException("Redefetion of variable");
+
+        else _constsNamesPos = constsNames->add((*_instr)[(*_instrCrrntPos)]->phr);
+
+        (*_instrCrrntPos)++;
+
+}
+
 utils::LinkedList<parser::convertToAst::Node>* 
     parser::convertToAst::Ast::getNodes(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos) { 
 
@@ -320,7 +328,13 @@ utils::LinkedList<parser::convertToAst::Node>*
 
             // Make work with function declaration // TODO
 
-            if ((*_instr)[(*_instrCrrntPos) + 2]->id == TOKEN_EQUAL) // declaration type
+            if ((*_instr)[(*_instrCrrntPos) + 2]->id == TOKEN_OPENPARENTHESES) { //function declation
+
+                generateFunctionDeclaration(_instr, _instrCrrntPos, _type);
+
+            }
+
+            else if ((*_instr)[(*_instrCrrntPos) + 2]->id == TOKEN_EQUAL) // variable declaration
                 _rtr->join(
                     generateVariableDeclaration(_instr, _instrCrrntPos, _type)
                 );

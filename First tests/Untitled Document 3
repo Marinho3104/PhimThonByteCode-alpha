@@ -1,0 +1,25 @@
+        int _constsValuesPos, _expressionOperatorPos;
+
+        std::cout << "--> Arithmetric expression added <--" << std::endl;
+
+        if ((_constsValuesPos = constsValues->getObjectPosition( // Check s if const value is already in LinkedList, if not added
+            (*_instr)[(*_instrCrrntPos)]->phr, &utils::compareStrings)) == -1) 
+                _constsValuesPos = constsValues->add((*_instr)[(*_instrCrrntPos)]->phr);
+        (*_instrCrrntPos)++;
+
+        if ((_expressionOperatorPos = constsExpressionOperator->getObjectPosition( // Check s if assignment type is already in LinkedList if not added
+            &(*_instr)[(*_instrCrrntPos)]->id, [](int* _f, int* _s) -> bool { return *_f == *_s; })) == -1) 
+                _expressionOperatorPos = constsExpressionOperator->add(&(*_instr)[(*_instrCrrntPos)]->id);
+        (*_instrCrrntPos)++;
+
+        utils::LinkedList<Node>* _node = getNodes(_instr, _instrCrrntPos);
+
+        parser::convertToAst::Node*;
+
+        if ()
+
+        return new NodeArithmetricExpression(
+            new NodeValue(_constsValuesPos),
+            !_node->count ? NULL : _node->frst->object,
+            _expressionOperatorPos
+        );

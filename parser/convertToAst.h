@@ -9,6 +9,7 @@
 #define AST_NODE_EXPRESSION 4 // Present a expression
 #define AST_NODE_VARIABLEVALUE 5 // resent a const name position
 #define AST_NODE_PARENTHESIS 6 // resent a const name position
+#define AST_NODE_FUNCTIONDECLARATION 7 // resent a function declaration
 
 namespace utils { template <typename> struct LinkedList; }
 
@@ -47,13 +48,15 @@ namespace parser::convertToAst {
     };
 
     /* Node to hold a Expression
-    *   First and Second value can either a NodeValue or NodeArithmetricExpression
+    *   First and Second value can either be a NodeValue, NodeVariableValue or another NodeExpression
     */
     struct NodeExpression : public Node {
         Node* frst, *scnd; // Value of first and second values 
         int expressionPos; // Expression value representation 
         NodeExpression(Node*, Node*, int);
-        /* Sort expression by priority*/
+        /* Sort expression by priority 
+        *   Not been used at all !
+        */
         void sortByPriority(utils::LinkedList<int>*);
         /* Return value by expression value
         *   --> return table <--
@@ -76,6 +79,16 @@ namespace parser::convertToAst {
     struct NodeParenthesis : public Node {
         Node* value; // Value inside parenthesis 
         NodeParenthesis(Node*);
+    };
+
+    /* Node to hold a function declaration */
+    struct NodeFunctionDeclaration : public Node {
+        int rtrTypePos; // Function return type pos
+        int funcNamePos; // Function name pos
+        utils::LinkedList <int>* scopeTypePos; // Function scope types pos
+        utils::LinkedList <int>* scopeNamePos; // Function scope names pos
+        utils::LinkedList <Node>* body; // Function body
+        NodeFunctionDeclaration(int, int, utils::LinkedList <int>*, utils::LinkedList <int>*, utils::LinkedList <Node>*);
     };
 
     /* Hol any type of excetion occur in Ast generation*/
@@ -122,6 +135,9 @@ namespace parser::convertToAst {
 
         /**/
         parser::convertToAst::Node* generateParenthesis(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateFunctionDeclaration(utils::LinkedList <token::Token>*, int*, int);
 
         /*  Generate a new Node
         *   @param  _instr Instruction to work with
