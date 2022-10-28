@@ -10,7 +10,7 @@ int main() {
 
     token::TokensCollection* _tokensColl = parser::convertToTokens::createTokens(
 
-    "int test() {}"
+    "int oal = 1; { oal; }"
 
     //"int ole = 10 * (ko + 10);"
 

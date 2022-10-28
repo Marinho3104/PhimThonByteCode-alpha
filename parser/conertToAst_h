@@ -1,0 +1,158 @@
+#pragma once
+
+#ifndef CONVERTTOAST_H
+#define CONVERTOTAST_H
+
+#define AST_NODE_VALUE 1 //Just represent a const value
+#define AST_NODE_VARIABLEDECLARATION 2 // Represent a variable declaration
+#define AST_NODE_VARIABLEASSIGNMET 3 // Represent a variable assignmet
+#define AST_NODE_EXPRESSION 4 // Present a expression
+#define AST_NODE_VARIABLEVALUE 5 // resent a const name position
+#define AST_NODE_PARENTHESIS 6 // resent a const name position
+#define AST_NODE_FUNCTIONDECLARATION 7 // resent a function declaration
+
+namespace utils { template <typename> struct LinkedList; }
+
+namespace token { struct TokensCollection; struct Token; }
+
+namespace parser::convertToAst {
+
+    /* Node default representation for all types of nodes 
+    *   Should never be declared by it self !!
+    */
+    struct Node { 
+        int type; // Type representation
+    };
+
+    /* Node to hold a value */
+    struct NodeValue : public Node { 
+        int valuePos; // Value pos in const value table 
+        NodeValue(int);
+    };
+
+    /* Node to hold a variable declaration */
+    struct NodeVariableDeclaration : public Node {
+        int variableTypePos; // Variable type pos in const names
+        int namePos; // Value pos to const names in table
+        bool isPointer; // If variabled declared is pointer
+        Node* value; // Value assigned to this variable | NULL if no value assigned
+        NodeVariableDeclaration(int, int, bool, Node*);
+    };
+
+    /*  Node to hold a variable assignmet*/
+    struct NodeVariableAssignmet : public Node {
+        int namePos; // Value pos to const names in table 
+        int assignmentPos; // Value pos to consts assignment in table
+        Node* value; // Value assigned to this variable | NULL if no value assigned
+        NodeVariableAssignmet(int, int, Node*);
+    };
+
+    /* Node to hold a Expression
+    *   First and Second value can either be a NodeValue, NodeVariableValue or another NodeExpression
+    */
+    struct NodeExpression : public Node {
+        Node* frst, *scnd; // Value of first and second values 
+        int expressionPos; // Expression value representation 
+        NodeExpression(Node*, Node*, int);
+        /* Sort expression by priority 
+        *   Not been used at all !
+        */
+        void sortByPriority(utils::LinkedList<int>*);
+        /* Return value by expression value
+        *   --> return table <--
+        *       1 -> ()
+        *       2 -> * / % ++ --
+        *       3 -> + -
+        *       4 -> & | ^ ~ << >>
+        *       5 -> && || !
+        */
+        int getExpressionPriority(utils::LinkedList<int>*);
+    };
+
+    /* Node to hold a value of a variable name */
+    struct NodeVariableValue : public Node {
+        int namePos; // Value pos to const names in table
+        NodeVariableValue(int);
+    };
+
+    /* Node to mark a parenthesis occurrence */
+    struct NodeParenthesis : public Node {
+        Node* value; // Value inside parenthesis 
+        NodeParenthesis(Node*);
+    };
+
+    /* Node to hold a function declaration */
+    struct NodeFunctionDeclaration : public Node {
+        int rtrTypePos; // Function return type pos
+        int funcNamePos; // Function name pos
+        utils::LinkedList <int>* scopeTypePos; // Function scope types pos
+        utils::LinkedList <int>* scopeNamePos; // Function scope names pos
+        utils::LinkedList <Node>* body; // Function body
+        NodeFunctionDeclaration(int, int, utils::LinkedList <int>*, utils::LinkedList <int>*, utils::LinkedList <Node>*);
+    };
+
+    /* Hol any type of excetion occur in Ast generation*/
+    struct AstException {
+        char* description; // Exception description
+        AstException(char*);
+        char* what();
+    };
+
+    /* Ast */
+    struct Ast {
+        utils::LinkedList<Node>* body; // Hold all Nodes necessary to given TokensCollection
+        utils::LinkedList<int>* keyWords; // Hold all different keywords used accross TokensCollection
+        utils::LinkedList<int>* assignment; // Hold all different assignment used accross TokensCollection
+        utils::LinkedList<char>* constsNames; // Hold all different constants Name accross TokensCollection
+        utils::LinkedList<char>* constsValues; // Hold all different constants Values accross TokensCollection
+        utils::LinkedList<int>* constsExpressionOperator; // Hold all different constants Values accross TokensCollection
+        AstException* exception; // If any exception occur during Ast generation proccess must be saved here
+        Ast();
+
+        void setException(char*); // Set and throw exception
+
+        /* Set all tokens of a single instruction into the given variable
+        *   @param _instrSet Instruction variable to set
+        *   @param _tokensColl Tokens collection given
+        *   @param _crrntTokenPos Current token position
+        */
+        void setFullInstruction(utils::LinkedList <token::Token>*, token::TokensCollection*, int*);
+
+        /**/
+        utils::LinkedList<parser::convertToAst::Node>* generateVariableDeclaration(utils::LinkedList <token::Token>*, int*, int);
+
+        /**/
+        parser::convertToAst::Node* generateValue(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateVariableValue(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateExpression(utils::LinkedList <token::Token>*, int*, bool, bool);
+
+        /**/
+        parser::convertToAst::Node* generateVariableAssignment(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateParenthesis(utils::LinkedList <token::Token>*, int*);
+
+        /**/
+        parser::convertToAst::Node* generateFunctionDeclaration(utils::LinkedList <token::Token>*, int*, int);
+
+        /*  Generate a new Node
+        *   @param  _instr Instruction to work with
+        *   @param _instrCrrntPos Instruction current position
+        */
+        utils::LinkedList<parser::convertToAst::Node>* getNodes(utils::LinkedList <token::Token>*, int*); 
+
+        /*  Generate a new Ast
+        *   @param _tokensColl Tokens collection generated by the src code
+        */
+        void generateAst(token::TokensCollection*);
+
+
+    };
+
+}
+
+#endif

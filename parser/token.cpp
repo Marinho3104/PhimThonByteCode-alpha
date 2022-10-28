@@ -249,7 +249,7 @@ int token::checkThirdCharacterSpecialToken(int _frst, int _scnd, int _thrd) {
 bool token::checkIfExpressionOperator(int _tokenId) {
 
     return (
-        _tokenId >= 10 && _tokenId <= 25 || // Reach Arithmetric, Relational, Logical
+        _tokenId >= 10 && _tokenId <= 14 || _tokenId >= 17 && _tokenId <= 25 || // Reach Arithmetric, Relational, Logical
         _tokenId >= 36 && _tokenId <= 41 // Reach Bitwise
     );
 
@@ -258,12 +258,15 @@ bool token::checkIfExpressionOperator(int _tokenId) {
 bool token::checkIfOperatorIsAssignment(int _tokenId) {
 
     return (
-        _tokenId >= 26 && _tokenId <= 35 || _tokenId == 1
+        _tokenId >= 26 && _tokenId <= 35 || _tokenId == 1 || _tokenId >= 15 && _tokenId <= 16
     );
 
 }
 
+bool token::checkIfOperatorIsSingleAssignment(int _tokenId) {
 
+    return _tokenId == TOKEN_INCREMENT || _tokenId == TOKEN_DECREMENT;
 
+}
 
 

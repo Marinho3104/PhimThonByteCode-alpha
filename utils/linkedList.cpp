@@ -48,9 +48,20 @@ int utils::LinkedList<type>::add(type* _newValue) {
 
     if (frst == NULL) { frst = _linkedListData; last = _linkedListData; }
 
-    else { last->next = _linkedListData; last = _linkedListData; }
+    else { last->next = _linkedListData; _linkedListData->previous = last; last = _linkedListData; }
 
     return count++;
+
+}
+
+template <typename type>
+int utils::LinkedList<type>::add(type _newValue) {
+
+    type* _ = (type*) malloc(sizeof(type));
+
+    *_ = _newValue;
+
+    add(_);
 
 }
 
@@ -71,6 +82,8 @@ void utils::LinkedList<type>::addFrst(type* _newValue) {
 template <typename type>
 void utils::LinkedList<type>::join(utils::LinkedList <type>* _toJoin) {
 
+    if (!_toJoin) return;
+    
     int _  = 0;
 
     if (!frst) {
@@ -152,6 +165,8 @@ void utils::LinkedList<type>::clean() {
 template <typename type>
 type* utils::LinkedList<type>::operator[](int _index) {
 
+    if (_index >= count) return NULL;
+
     utils::LinkedListData <type>* _rtr = frst;
 
     for (int _ = 0; _ < _index; _++) _rtr = _rtr->next;
@@ -172,11 +187,13 @@ int utils::LinkedList<type>::getObjectPosition(type* _c, bool (*func) (type*, ty
 }
 
 
+template class utils::LinkedListData<parser::convertToAst::NodeVariableDeclaration>;
 template class utils::LinkedListData<parser::convertToAst::Node>;
 template class utils::LinkedListData<token::Token>;
 template class utils::LinkedListData<int>;
 template class utils::LinkedListData<char>;
 
+template class utils::LinkedList<parser::convertToAst::NodeVariableDeclaration>;
 template class utils::LinkedList<parser::convertToAst::Node>;
 template class utils::LinkedList<token::Token>;
 template class utils::LinkedList<int>;

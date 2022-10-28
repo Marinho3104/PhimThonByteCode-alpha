@@ -29,6 +29,8 @@ namespace utils {
 
         int add(type*);
 
+        int add(type);
+
         void addFrst(type*);
 
         void join(LinkedList <type>*);

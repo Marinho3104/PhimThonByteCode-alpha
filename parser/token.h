@@ -127,6 +127,9 @@ namespace token {
     *   Needs to be part of Assignment operators
     */
     bool checkIfOperatorIsAssignment(int);
+    
+    /*  ++ -- */
+    bool checkIfOperatorIsSingleAssignment(int);
 
 }
 
