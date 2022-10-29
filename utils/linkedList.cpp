@@ -188,12 +188,14 @@ int utils::LinkedList<type>::getObjectPosition(type* _c, bool (*func) (type*, ty
 
 
 template class utils::LinkedListData<parser::convertToAst::NodeVariableDeclaration>;
+template class utils::LinkedListData<parser::convertToAst::TypeInformation>;
 template class utils::LinkedListData<parser::convertToAst::Node>;
 template class utils::LinkedListData<token::Token>;
 template class utils::LinkedListData<int>;
 template class utils::LinkedListData<char>;
 
 template class utils::LinkedList<parser::convertToAst::NodeVariableDeclaration>;
+template class utils::LinkedList<parser::convertToAst::TypeInformation>;
 template class utils::LinkedList<parser::convertToAst::Node>;
 template class utils::LinkedList<token::Token>;
 template class utils::LinkedList<int>;

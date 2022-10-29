@@ -96,7 +96,7 @@ namespace parser::convertToAst {
         *       5 -> && || !
         */
         int getExpressionPriority(utils::LinkedList<int>*);
-    };
+    };	
 
     /* Node to mark a parenthesis occurrence */
     struct NodeParenthesis : public Node {

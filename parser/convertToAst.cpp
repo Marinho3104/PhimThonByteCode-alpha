@@ -61,59 +61,53 @@ parser::convertToAst::Block*
 
 /////////// Node Variable Declaration ///////////
 
-parser::convertToAst::NodeVariableDeclaration::NodeVariableDeclaration(int _variableTypePos, int _namePos, int _pointerLevel, int _referenceLevel, Node* _value) :
-    namePos(_namePos), value(_value) {
-        type = AST_NODE_VARIABLEDECLARATION;
-        typeInfo = new parser::convertToAst::TypeInformation(_variableTypePos, _pointerLevel, _referenceLevel);
-}
+parser::convertToAst::NodeVariableDeclaration::NodeVariableDeclaration(TypeInformation* _typeInfo, int _namePos, Node* _value) :
+    typeInfo(_typeInfo), namePos(_namePos), value(_value) { type = AST_NODE_VARIABLEDECLARATION; }
 
 utils::LinkedList <parser::convertToAst::Node>* 
     parser::convertToAst::NodeVariableDeclaration::generate(
-        utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos, int _type, Ast* _ast, Block* _crrntBlock) {
+        utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos, TypeInformation* _type, Ast* _ast, Block* _crrntBlock) {
             std::cout << "--> Variable Declaration <--" << std::endl;
             utils::LinkedList <Node>* _rtr = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
             new (_rtr) utils::LinkedList <Node>();
-            int _keyWordPos = _ast->storage->addKeyWord(_type), _constsNamesPos, _pntrLevel, _referenceLevel;
-            (*_instrCrrntPos)++;
+            int _constsNamesPos, _pntrLevel, _referenceLevel;
             while((*_instr)[(*_instrCrrntPos)]->id != TOKEN_ENDLINE) {
-                _pntrLevel = 0; _referenceLevel = 0;
-                if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) {
-                    while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) { (*_instrCrrntPos)++; _pntrLevel++; }
-                    if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) _ast->setException("Error nesty tokens");
-                }
-                else if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) {
-                    while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) { (*_instrCrrntPos)++; _referenceLevel++; }
-                    if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) _ast->setException("Error nesty tokens");
-                }
-                _constsNamesPos = _ast->storage->addConstsNames((*_instr)[(*_instrCrrntPos)]->phr);
-                if (_crrntBlock->environment->getVariableDeclaration(_constsNamesPos)) _ast->setException("Redefetion of variable");
-                (*_instrCrrntPos)++;
-                if ((*_instr)[(*_instrCrrntPos)]->id != TOKEN_EQUAL) { // Just declaration, no assigment -> int p;
-                    std::cout << "Added, no assigment" << std::endl;
-                    _rtr->add(
-                        new NodeVariableDeclaration(_keyWordPos, _constsNamesPos, _pntrLevel, _referenceLevel, NULL)
-                    );
-                    _crrntBlock->environment->addVariableDeclaration(_rtr->last->object);
-                    if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) 
-                        (*_instrCrrntPos)++; // If is not "," means is end of instruction ";", should not be changing value cuss to leave need ";"
-                }
-                else { // Declaration have assigment as well
-                    std::cout << "Added with assigment" << std::endl;
+                    _constsNamesPos = _ast->storage->addConstsNames((*_instr)[(*_instrCrrntPos)]->phr);
+                    if (_crrntBlock->environment->getVariableDeclaration(_constsNamesPos)) _ast->setException("Redefetion of variable");
                     (*_instrCrrntPos)++;
-                    utils::LinkedList<Node>* _node = _ast->getNodes(_instr, _instrCrrntPos, _crrntBlock, 0);
-                    _rtr->add(
-                        new NodeVariableDeclaration(
-                            _keyWordPos, 
-                            _constsNamesPos, 
-                            _pntrLevel, 
-                            _referenceLevel,
-                            !_node->count ? NULL : _node->frst->object
-                        )
-                    );
-                    _crrntBlock->environment->addVariableDeclaration(_rtr->last->object);
-                    if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) 
+                    if ((*_instr)[(*_instrCrrntPos)]->id != TOKEN_EQUAL) { // Just declaration, no assigment -> int p;
+                        std::cout << "Added, no assigment" << std::endl;
+                        _rtr->add(
+                            new NodeVariableDeclaration(_type, _constsNamesPos, NULL)
+                        );
+                        _crrntBlock->environment->addVariableDeclaration(_rtr->last->object);
+                    }
+                    else { // Declaration have assigment as well
+                        std::cout << "Added with assigment" << std::endl;
+                        (*_instrCrrntPos)++;
+                        utils::LinkedList<Node>* _node = _ast->getNodes(_instr, _instrCrrntPos, _crrntBlock, 1);
+                        _rtr->add(
+                            new NodeVariableDeclaration(
+                                _type, 
+                                _constsNamesPos, 
+                                !_node->count ? NULL : _node->frst->object
+                            )
+                        );
+                        _crrntBlock->environment->addVariableDeclaration(_rtr->last->object);
+                    }
+                    if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) {
                         (*_instrCrrntPos)++; // If is not "," means is end of instruction ";", should not be changing value cuss to leave need ";"
-                }
+                        _pntrLevel = 0; _referenceLevel = 0;
+                        if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) {
+                            while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) { (*_instrCrrntPos)++; _pntrLevel++; }
+                            if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) _ast->setException("Error nesty tokens");
+                        }
+                        else if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) {
+                            while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) { (*_instrCrrntPos)++; _referenceLevel++; }
+                            if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) _ast->setException("Error nesty tokens");
+                        }
+                        _type = new TypeInformation(_type->typePos, _pntrLevel, _referenceLevel);
+                    }
             }
             return _rtr;
 }
@@ -275,6 +269,61 @@ parser::convertToAst::BlockEnd*
 
 } 
 
+/////////// Node Function Declaration ///////////
+
+parser::convertToAst::NodeFunctionDeclaration::NodeFunctionDeclaration(
+    TypeInformation* _returnTypeInformation, int _namePos, utils::LinkedList <TypeInformation>* _typeInformationScope, utils::LinkedList <int>* _nameScope, Node* _block) :
+        returnTypeInformation(_returnTypeInformation), namePos(_namePos), typeInformationScope(_typeInformationScope), nameScope(_nameScope), body(_block) {
+            type = AST_NODE_FUNCTIONDECLARATION;
+}
+    
+parser::convertToAst::NodeFunctionDeclaration* 
+    parser::convertToAst::NodeFunctionDeclaration::generate(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos, TypeInformation* _typeReturn, Ast* _ast, Block* _crrntBlock) {
+        std::cout << "--> Node Function Declaration <--" << std::endl;
+        utils::LinkedList <TypeInformation>* _typeInformationScope = (utils::LinkedList <TypeInformation>*) malloc(sizeof(utils::LinkedList <TypeInformation>));
+        utils::LinkedList <int>* _nameScope = (utils::LinkedList <int>*) malloc(sizeof(utils::LinkedList <int>));
+        int _constsNamesPos, _pntrLevel, _referenceLevel, _keyWordPos, _type, _constsNameTemp;
+        new (_typeInformationScope) utils::LinkedList <TypeInformation>();
+        new (_nameScope) utils::LinkedList <int>();
+        _constsNamesPos = _ast->storage->addConstsNames((*_instr)[(*_instrCrrntPos)]->phr);
+        if (_crrntBlock->environment->getVariableDeclaration(_constsNamesPos)) _ast->setException("Redefenition of Variable");
+        (*_instrCrrntPos)+= 2;
+        while(!((*_instr)[(*_instrCrrntPos)]->id == TOKEN_CLOSEPARENTHESES)) { // Loops until reach end of scope
+            if (!(_type = keyWordsReserved::checkIfWordIsVariableType((*_instr)[*_instrCrrntPos]->phr))) _ast->setException("Undefined Variable Type");
+            (*_instrCrrntPos)++;
+            _keyWordPos = _ast->storage->addKeyWord(_type);
+            _pntrLevel = 0; _referenceLevel = 0;
+            if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) {
+                while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) { (*_instrCrrntPos)++; _pntrLevel++; }
+                if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) _ast->setException("Error nesty tokens");
+            }
+            else if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) {
+                while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) { (*_instrCrrntPos)++; _referenceLevel++; }
+                if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) _ast->setException("Error nesty tokens");
+            }
+            _typeInformationScope->add(
+                new TypeInformation(_keyWordPos, _pntrLevel, _referenceLevel)
+            );
+            if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_CLOSEPARENTHESES) continue;
+            else if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) { _nameScope->add(-1); (*_instrCrrntPos)++; }
+            else {
+                _constsNameTemp = _ast->storage->addConstsNames((*_instr)[(*_instrCrrntPos)]->phr);
+                _nameScope->add(_constsNameTemp);
+                (*_instrCrrntPos)++;
+                if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_COMMA) (*_instrCrrntPos)++;
+            }
+        }
+        (*_instrCrrntPos)++;
+        utils::LinkedList<parser::convertToAst::Node>* _node = _ast->getNodes(_instr, _instrCrrntPos, _crrntBlock, 0);
+        return new NodeFunctionDeclaration(
+            _typeReturn,
+            _constsNamesPos,
+            _typeInformationScope,
+            _nameScope,
+            _node->count ? _node->frst->object : NULL
+        );
+}
+
 /////////// Type Information ///////////
 
 parser::convertToAst::TypeInformation::TypeInformation(int _typePos, int _pointerLevel, int _referenceLevel) : 
@@ -380,11 +429,10 @@ void parser::convertToAst::Ast::setException(char* _description) {
 utils::LinkedList<parser::convertToAst::Node>* 
     parser::convertToAst::Ast::getNodes(utils::LinkedList <token::Token>* _instr, int* _instrCrrntPos, Block* _crrntBlock, bool _single) {
 
-        std::cout << "In get" << std::endl;
         utils::LinkedList <Node>* _rtr = (utils::LinkedList <Node>*) malloc(sizeof(utils::LinkedList <Node>));
         new (_rtr) utils::LinkedList <Node>();
         
-        int _, _type;
+        int _, _type, _keyWordPos, _pntrLevel, _referenceLevel;
         token::Token* _tok, *_tok1;
 
         if (_instrCrrntPos == NULL) { // if _instrCrrntPos == NULL just set to value 0
@@ -422,10 +470,40 @@ utils::LinkedList<parser::convertToAst::Node>*
 
         else if ((_type = keyWordsReserved::checkIfWordIsVariableType((*_instr)[*_instrCrrntPos]->phr))) { // declaration type or function declaration
 
-            _rtr->join(
-                NodeVariableDeclaration::generate(_instr, _instrCrrntPos, _type, this, _crrntBlock)
-            );
+            _keyWordPos = storage->addKeyWord(_type);
+            _pntrLevel = 0; _referenceLevel = 0;
+            (*_instrCrrntPos)++;
+
+            if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) {
+                while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) { (*_instrCrrntPos)++; _pntrLevel++; }
+                if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) setException("Error nesty tokens");
+            }
+            else if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) {
+                while((*_instr)[(*_instrCrrntPos)]->id == TOKEN_AND) { (*_instrCrrntPos)++; _referenceLevel++; }
+                if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_MULTIPLICATION) setException("Error nesty tokens");
+            }
+
+            TypeInformation* _typeInformation = (TypeInformation*) malloc(sizeof(TypeInformation));
+            new (_typeInformation) TypeInformation(_keyWordPos, _pntrLevel, _referenceLevel);
+
+            if ((*_instr)[(*_instrCrrntPos) + 1]->id == TOKEN_OPENPARENTHESES) {
+
+                _rtr->add(
+                    NodeFunctionDeclaration::generate(_instr, _instrCrrntPos, _typeInformation, this, _crrntBlock)
+                );
+
+                setException("Not complete");
+
+            }
+
+            else {
+
+                _rtr->join(
+                    NodeVariableDeclaration::generate(_instr, _instrCrrntPos, _typeInformation, this, _crrntBlock)
+                );
             
+            }
+
         }
 
         else if ((*_instr)[(*_instrCrrntPos)]->id == TOKEN_OPENPARENTHESES && _single) {

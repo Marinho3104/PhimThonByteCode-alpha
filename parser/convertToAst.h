@@ -12,6 +12,7 @@
 #define AST_NODE_EXPRESSION 7
 #define AST_NODE_PARENTHESIS 8
 #define AST_NODE_BLOCKEND 9 // Its temporary in tree
+#define AST_NODE_FUNCTIONDECLARATION 10 
 
 namespace utils { template <typename> struct LinkedList; }
 namespace token { struct TokensCollection; struct Token; }
@@ -42,8 +43,8 @@ namespace parser::convertToAst {
         TypeInformation* typeInfo; // Variable type information
         int namePos; // Value pos to const names in table
         Node* value; // Value assigned to this variable | NULL if no value assigned
-        NodeVariableDeclaration(int, int, int, int, Node*);
-        static utils::LinkedList <Node>* generate(utils::LinkedList <token::Token>*, int*, int, Ast*, Block*);
+        NodeVariableDeclaration(TypeInformation*, int, Node*);
+        static utils::LinkedList <Node>* generate(utils::LinkedList <token::Token>*, int*, TypeInformation*, Ast*, Block*);
     };
     /* Node to hold a value */
     struct NodeValue : public Node { 
@@ -100,6 +101,16 @@ namespace parser::convertToAst {
     };
     /* Means end of block of code */
     struct BlockEnd : public Node { BlockEnd(); static BlockEnd* generate(); };    
+    /* Node to hold a function Declaration */
+    struct NodeFunctionDeclaration : public Node {
+        TypeInformation* returnTypeInformation;
+        int namePos; // Value pos to const names in table
+        utils::LinkedList <TypeInformation>* typeInformationScope;
+        utils::LinkedList <int>* nameScope;
+        Node* body; // Should be Block it self ? maybe not needed
+        NodeFunctionDeclaration(TypeInformation*, int, utils::LinkedList <TypeInformation>*, utils::LinkedList <int>*, Node*);
+        static NodeFunctionDeclaration* generate(utils::LinkedList <token::Token>*, int*, TypeInformation*, Ast*, Block*);
+    };
     /* Hold a the type information about declaration */
     struct TypeInformation {
         int typePos; // Type pos in type table
